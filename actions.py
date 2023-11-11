@@ -6,15 +6,21 @@ class Actions():
         poss_sols = [[*sol.values()][0] + prop for sol in f2.getSolutionIter()]
         return f1.addConstraint(cn.InSetConstraint(poss_sols))
 
-    def set_face_relation(self, n: NodeProperties, ax: Axes):
-        # TODO  pass in an axis here, and Orient should have axis property 
+    def set_face_relation(self, n: NodeProperties, ax: Axes, rel_type="SWB"):
         d = {
+            "NET": {
             Axes.Y: ("faceN", "faceS", n.width),
             Axes.X: ("faceE", "faceW", n.length),
             Axes.Z: ("faceT", "faceB", n.height)
-        }
+        },
+            "SWB":             
+            {Axes.Y: ("faceS", "faceN", n.width),
+            Axes.X: ("faceW", "faceE", n.length),
+            Axes.Z: ("faceB", "faceT", n.height)
+            }
+        } # TODO might remove this from dict for speed purposes...
 
-        f1, f2, prop = [*d[ax]]
+        f1, f2, prop = [*d[rel_type][ax]]
         return self.__set_matching_face(n.faces.__getattribute__(f1), n.faces.__getattribute__(f2), prop)
 
 
