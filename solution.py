@@ -22,9 +22,10 @@ class Solution(SetUp):
         pass
 
     def solve_2D_problem(self):
-        for edge in self.tree:
-            a = Actions()
-
+        a = Actions()
+        span_tree, back_tree = a.reorganize_tree(self.tree)
+        print(span_tree, back_tree)
+        for edge in span_tree:
             # get the nodes
             ni = self.graph.nodes[edge[0]]["props"]
             nj = self.graph.nodes[edge[1]]["props"]
