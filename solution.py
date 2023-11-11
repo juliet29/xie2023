@@ -24,10 +24,10 @@ class Solution(SetUp):
 
     def solve_2D_problem(self):
         a = Actions()
-        # span_tree, back_tree = a.reorganize_tree(self.tree)
-        # print(span_tree, back_tree)
+        span_tree, back_tree = a.reorganize_tree(self.tree)
+        tree = span_tree + back_tree
         self.visited_nodes = []
-        for edge in self.tree:
+        for edge in tree:
             # get the nodes
             
             self.new_node = self.graph.nodes[edge[1]]

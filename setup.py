@@ -38,17 +38,27 @@ class SetUp():
         self.tree = list(nx.edge_dfs(self.graph, source=0))
         self.traversal_order = [item for sublist in self.tree for item in sublist]
     
-    def fix_orientations(self):
-        # TODO -> extend to include all unincluded information 
-        rng = np.random.default_rng(seed=42) # rand num generator
-        new_orients = rng.integers(Orient.NORTH.value, Orient.WEST.value, len(self.tree)) # can assign new orientations to be NSEW but not (bottom/top -> level height addresses this)
+    def ser_orientations(self):
+        ut = np.triu(ORIENTATIONS)
 
-        for n, rel in zip(new_orients, self.tree):
-            if self.graph.edges[rel]["orient"] == Orient.NONE:
-                self.graph.edges[rel]["orient"] = Orient(n)
+        # randomly set values in upper triangle that are not set 
+        rng = np.random.default_rng(seed=42)
+        for iy, ix in np.ndindex(ut.shape):
+            if ut[iy, ix] == Orient.NONE:
+                r = rng.integers(Orient.NORTH.value, Orient.WEST.value, size=1)[0]
+                ut[iy, ix] = Orient(r)
 
-        # FOR testing purposes, match Fig 16a, 3-2 has East(*-1) relationship => West (but edges are unidirectional for now, so keep as East...) 
-        self.graph.edges[2,3]["orient"] = Orient.EAST
+        # match with partner
+        for iy, ix in np.ndindex(ut.shape):
+            if ut[iy, ix] == 0:
+                ut[iy, ix] = ut[ix, iy].partner
+
+        # zero out diagonal 
+        for iy, ix in np.ndindex(ut.shape):
+            if iy == ix:
+                ut[iy, ix] = Orient(0)  
+
+        # set graph edges
 
         return 
 

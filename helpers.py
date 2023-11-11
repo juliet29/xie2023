@@ -127,7 +127,7 @@ class NodeProperties:
 
 
 class VisualHelpers():
-    def create_viz_data(self, face: Face): # TODO put this in the face class...
+    def create_viz_data(self, face: Face): 
         domain = list(range(50))
         sols = face.get_face_sols()
         d = None
@@ -147,11 +147,6 @@ class VisualHelpers():
                 # return d, type
         else:
             type = "shape"
-            # x0 = min(sols)
-            # x1 = max(sols)
-            # y0 = min(domain) - 10
-            # y1 = max(domain) + 10
- 
             if face.axis == Axes.X:
                 y = domain
                 x1 = [min(sols)]*len(domain)
