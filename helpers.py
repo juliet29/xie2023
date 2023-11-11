@@ -54,6 +54,11 @@ class Face(cn.Problem):
         nrange = range(0, 50)
         self.addVariable(axis, nrange)
         self.axis = axis
+    
+    def get_curr_sols(self):
+        self.curr_sols = [list(z.values())[0] for z in self.getSolutions()]
+        self.len_sols = len(self.curr_sols)
+        return self.curr_sols
 
     def get_face_sol(self):
         assert len(self.getSolutions()) == 1, "Not a unique solution"
