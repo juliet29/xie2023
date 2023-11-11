@@ -12,7 +12,6 @@ class SetUp():
     def __init__(self):
         self.graph = self.initialize_graph()
         self.create_spanning_tree()
-        self.fix_orientations()
         pass
 
 
@@ -25,20 +24,21 @@ class SetUp():
             d = [list_of_values[ix] for list_of_values in NODE_DATA.values()]
             CG.nodes[ix]["props"] = NodeProperties(*d, ix) #TODO can extend the node object from networkx module so dont have props dict 
 
-        # edges # TODO make EdgeProperties object 
-        n = np.linspace(0,3,4) # TODO make flexible 
-        X2D,Y2D = np.meshgrid(n,n)
-        attrs = {(x,y): {"space_rel": sr, "orient": o} for x,y,sr,o in zip(Y2D.ravel(),X2D.ravel(), SPACE_REL.ravel(), ORIENTATIONS.ravel())}
-        nx.set_edge_attributes(CG, attrs)
+        ut = self.set_orientations()
 
-        return CG
+        # set graph edges for orientation + space relation data 
+        # graph needs to be a directed graph 
+        DG = nx.DiGraph(CG)
+        for iy, ix in np.ndindex(ut.shape):
+            if (iy, ix) in DG.edges():
+                DG.edges[iy, ix]["orient"] = ut[iy, ix]
+                DG.edges[iy, ix]["space_rel"] = SPACE_REL[iy, ix]
+
+
+        return DG
     
-    def create_spanning_tree(self):
-        # TODO fix alignments 
-        self.tree = list(nx.edge_dfs(self.graph, source=0))
-        self.traversal_order = [item for sublist in self.tree for item in sublist]
     
-    def ser_orientations(self):
+    def set_orientations(self):
         ut = np.triu(ORIENTATIONS)
 
         # randomly set values in upper triangle that are not set 
@@ -56,10 +56,30 @@ class SetUp():
         # zero out diagonal 
         for iy, ix in np.ndindex(ut.shape):
             if iy == ix:
-                ut[iy, ix] = Orient(0)  
+                ut[iy, ix] = Orient(0) 
 
-        # set graph edges
+        return ut 
 
-        return 
 
+
+    def create_spanning_tree(self):
+        self.tree = list(nx.edge_dfs(self.graph, source=0))
+
+        spanning = []
+        backing = []
+        for e in self.tree:
+            if abs(e[1] - e[0]) == 1:
+                if e[1] - e[0] < 0:
+                    spanning.append((e[1], e[0]))
+                else:
+                    spanning.append(e)
+            else:
+                if e[1] - e[0] > 0:
+                    backing.append((e[1], e[0]))
+                else:
+                    backing.append(e)
+
+        self.forward_edges, self.back_edges  = list(set(spanning)), sorted(list(set(backing)), reverse=True)
+        self.spanning_tree = self.forward_edges + self.back_edges
+        return self.spanning_tree
         

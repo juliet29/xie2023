@@ -1,30 +1,7 @@
 from helpers import *
 
 class Actions():
-    # REORGANIZE TREE ------
-    def reorganize_tree(self, tree: list):
-        spanning = []
-        backing = []
-        for e in tree:
-            if abs(e[1] - e[0]) == 1:
-                if e[1] - e[0] < 0:
-                    spanning.append((e[1], e[0]))
-                else:
-                    spanning.append(e)
-            else:
-                if e[1] - e[0] > 0:
-                    backing.append((e[1], e[0]))
-                else:
-                    backing.append(e)
-
-        backing = sorted(backing, reverse=True)
-        return spanning, backing
-
-
-
-
-
-
+    
     # SET MATCHING FACES ----------
     def __set_matching_face(self, f1: Face, f2:Face, prop):
         poss_sols = [[*sol.values()][0] + prop for sol in f2.getSolutionIter()]
