@@ -147,19 +147,32 @@ class VisualHelpers():
                 # return d, type
         else:
             type = "shape"
-            x0 = min(sols)
-            x1 = max(sols)
-            y0 = min(domain) - 10
-            y1 = max(domain) + 10
+            # x0 = min(sols)
+            # x1 = max(sols)
+            # y0 = min(domain) - 10
+            # y1 = max(domain) + 10
+ 
             if face.axis == Axes.X:
-                d = {
-                    "x0": x0,"x1": x1,"y0": y0,"y1": y1
-                }
-                # return d, type
+                y = domain
+                x1 = [min(sols)]*len(domain)
+                x2 = [max(sols)]*len(domain)
+                d1 = {"y" : y,
+                    "x" : x1,
+                    "fill":"tonextx"}
+                d2 = {"y" : y,
+                    "x" : x2,}
+                d = {"d1": d1, "d2": d2}
+            
             elif face.axis == Axes.Y:
-                d = {
-                    "y0": x0,"y1": x1,"x0": y0,"x1": y1
-                }
+                x = domain
+                y1 = [min(sols)]*len(domain)
+                y2 = [max(sols)]*len(domain)
+                d1 = {"x" : x,
+                    "y" : y1,
+                    "fill":"tonexty"}
+                d2 = {"x" : x,
+                    "y" : y2,}
+                d = {"d1": d1, "d2": d2}
         return d, type
 
 
