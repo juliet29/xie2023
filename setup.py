@@ -40,9 +40,8 @@ class SetUp():
     
     def fix_orientations(self):
         # TODO -> extend to include all unincluded information 
-        rng = np.random.default_rng(seed=42)
-        n_unorient = sum([self.graph.edges[rel]["orient"] == Orient.NONE for rel in self.tree])
-        new_orients = rng.integers(0, 6, len(self.tree)) 
+        rng = np.random.default_rng(seed=42) # rand num generator
+        new_orients = rng.integers(Orient.NORTH.value, Orient.WEST.value, len(self.tree)) # can assign new orientations to be NSEW but not (bottom/top -> level height addresses this)
 
         for n, rel in zip(new_orients, self.tree):
             if self.graph.edges[rel]["orient"] == Orient.NONE:

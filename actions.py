@@ -18,7 +18,7 @@ class Actions():
             Axes.X: ("faceW", "faceE", n.length),
             Axes.Z: ("faceB", "faceT", n.height)
             }
-        } # TODO might remove this from dict for speed purposes...
+        } # TODO might remove this from dict for speed purposes later
 
         f1, f2, prop = [*d[rel_type][ax]]
         return self.__set_matching_face(n.faces.__getattribute__(f1), n.faces.__getattribute__(f2), prop)
@@ -27,21 +27,24 @@ class Actions():
 
 
 
-
+    # def __set_matching_face(self, f1: Face, f2:Face, prop):
+    #     poss_sols = [[*sol.values()][0] + prop for sol in f2.getSolutionIter()]
+    #     return f1.addConstraint(cn.InSetConstraint(poss_sols))
 
 
     # SET ORIENTATION RELATIONSHIPS --------------
-    def __add_orientation_constraint(self, f1: Face, f2_val: int):
-        return f1.addConstraint(lambda x: x > f2_val) # TODO FIX, should be like a set?
+    def __add_orientation_constraint(self, f1: Face, f2: Face):
+        min_f2 = min([abs(list(s.values())[0]) for s in f2.getSolutions()])
+        return f1.addConstraint(lambda x: x < min_f2) # TODO FIX, should be like a set?
 
 
     def orient_ij(self, ni: NodeProperties, nj: NodeProperties, orient: Orient):
         ni = ni.faces
         nj = nj.faces
         d = {
-            Orient.SOUTH : (nj.faceN, ni.faceS.get_face_sol()),
-            Orient.WEST : (nj.faceE, ni.faceW.get_face_sol()),  
-            Orient.BOTTOM : (nj.faceT, ni.faceB.get_face_sol())
+            Orient.SOUTH : (nj.faceN, ni.faceS),
+            Orient.WEST : (nj.faceE, ni.faceW),  
+            Orient.BOTTOM : (nj.faceT, ni.faceB)
         }
 
         self.__add_orientation_constraint(*d[orient])

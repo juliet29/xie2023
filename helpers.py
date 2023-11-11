@@ -35,11 +35,11 @@ class Orient(Enum):
         return d[self.value]
 
 class Face(cn.Problem):
-    def __init__(self, face):
+    def __init__(self, axis: Axes):
         cn.Problem.__init__(self)
-        nrange = range(-100, 100)
-        self.addVariable(face, nrange)
-        self.axis = face
+        nrange = range(0, 50)
+        self.addVariable(axis, nrange)
+        self.axis = axis
 
     def get_face_sol(self):
         assert len(self.getSolutions()) == 1, "Not a unique solution"

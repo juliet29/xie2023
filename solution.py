@@ -9,7 +9,7 @@ class Solution(SetUp):
         n0 = self.graph.nodes[0]["props"]
         # default settings for the initial node 
         base_faces = ["faceB", "faceW", "faceS"]
-        props = [n0.level_height, 0, 0 ]
+        props = [n0.level_height, 10, 10]
 
         a = Actions()
         for face, prop in zip(base_faces, props):
