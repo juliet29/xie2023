@@ -16,6 +16,7 @@ class Solution(SetUp):
             curr_face = n0.faces.__getattribute__(face)
             curr_face.addConstraint(cn.InSetConstraint([prop])) 
             a.set_face_relation(n0, curr_face.axis, "NET") 
+        n0.constrained = True
         return n0.faces.see_curr_sols()
     
     def solve_TB_problem(self):
@@ -23,14 +24,24 @@ class Solution(SetUp):
 
     def solve_2D_problem(self):
         a = Actions()
-        span_tree, back_tree = a.reorganize_tree(self.tree)
-        print(span_tree, back_tree)
-        for edge in span_tree:
+        # span_tree, back_tree = a.reorganize_tree(self.tree)
+        # print(span_tree, back_tree)
+        self.visited_nodes = []
+        for edge in self.tree:
             # get the nodes
+            
+            self.new_node = self.graph.nodes[edge[1]]
             ni = self.graph.nodes[edge[0]]["props"]
-            nj = self.graph.nodes[edge[1]]["props"]
-            # get the orientation 
+            nj = self.new_node["props"]
             orient = self.graph.edges[edge]["orient"] 
+
+            # if the new node is constrained, then flip ni and nj and flip the direction 
+            if self.new_node["props"].constrained == True:
+                ni = self.graph.nodes[edge[1]]["props"]
+                self.new_node = self.graph.nodes[edge[0]]
+                nj = self.new_node["props"]
+                orient = orient.partner
+                
             
             print(edge, orient) 
             # constrain based on orientation

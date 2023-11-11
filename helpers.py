@@ -96,6 +96,7 @@ class NodeProperties:
         self.level_height = level_height
         self.pos = np.zeros(3)
         self.faces = NodeFaces()
+        self.constrained = False # not all axes are fixed 
 
         # TODO extend so that can account for minimal node infomation 
 
