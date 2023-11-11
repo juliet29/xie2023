@@ -33,6 +33,20 @@ class Orient(Enum):
         d = {ix:ax for ix, ax in enumerate(axes)}
 
         return d[self.value]
+    
+    @property
+    def basis(self):
+        axes = [None, False, True, False, True, False, True]
+        d = {ix:ax for ix, ax in enumerate(axes)}
+
+        return d[self.value]
+    
+    @property
+    def partner(self):
+        axes = [None, self.SOUTH, self.NORTH, self.WEST, self.EAST, self.BOTTOM, self.TOP]
+        d = {ix:ax for ix, ax in enumerate(axes)}
+
+        return d[self.value]
 
 class Face(cn.Problem):
     def __init__(self, axis: Axes):

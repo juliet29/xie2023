@@ -29,12 +29,21 @@ class Solution(SetUp):
             ni = self.graph.nodes[edge[0]]["props"]
             nj = self.graph.nodes[edge[1]]["props"]
             # get the orientation 
-            orient = self.graph.edges[self.tree[0]]["orient"] 
-            print(edge, orient)
-  
-            # constrain based on orientation 
-            a.orient_ij(ni, nj, orient)
+            orient = self.graph.edges[edge]["orient"] 
+            
+            print(edge, orient) 
+            # constrain based on orientation
+            try:
+                if orient.basis:
+                    a.orient_ij(ni, nj, orient)
+                else:
+                    a.orient_ij(nj, ni, orient.partner)
+                    print("switched")
+                
 
-            # match face 
-            a.set_face_relation(nj, orient.axis)
+                # match face 
+                a.set_face_relation(nj, orient.axis)
+            except:
+                return "Issue :("
+            print((f"node_num is {edge[1]}", nj.faces.see_curr_sols()))
 

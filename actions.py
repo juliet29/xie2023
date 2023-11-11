@@ -44,7 +44,8 @@ class Actions():
         d = {
             Orient.SOUTH : (nj.faceN, ni.faceS),
             Orient.WEST : (nj.faceE, ni.faceW),  
-            Orient.BOTTOM : (nj.faceT, ni.faceB)
+            Orient.BOTTOM : (nj.faceT, ni.faceB),
+
         }
 
         self.__add_orientation_constraint(*d[orient])
