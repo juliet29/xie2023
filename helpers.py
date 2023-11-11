@@ -12,6 +12,11 @@ class SpatialRel(Enum):
     CONTAINS = 3
     CONTAINING = 4
 
+class Axes(Enum):
+    X = 0
+    Y = 1
+    Z = 2
+
 class Orient(Enum):
     """Orientation"""
     NONE = 0
@@ -23,19 +28,11 @@ class Orient(Enum):
     BOTTOM = 6
 
     @property
-    def vector(self):
-        orient_vectors = {
-            0: (0,0,0),
-            1: (0,1,0), # north
-            2: (0,-1,0), # south
-            3: (1,0,0), # east
-            4: (-1,0,0), # west
-            5: (0,0,1), # top
-            6: (0,0,-1) # bottom
-        }
-        orient_vectors = { k:np.array(v) for (k,v) in orient_vectors.items()}
+    def axis(self):
+        axes = [None, Axes.Y, Axes.Y, Axes.X, Axes.X, Axes.Z, Axes.Z]
+        d = {ix:ax for ix, ax in enumerate(axes)}
 
-        return orient_vectors[self.value]
+        return d[self.value]
 
 class Face(cn.Problem):
     def __init__(self, face):
@@ -52,12 +49,12 @@ class Face(cn.Problem):
 
 class NodeFaces():
     def __init__(self):
-        self.faceN = Face("y")
-        self.faceS = Face("y")
-        self.faceE = Face("x")
-        self.faceW = Face("x")
-        self.faceT = Face("z")
-        self.faceB = Face("z")
+        self.faceN = Face(Axes.Y)
+        self.faceS = Face(Axes.Y)
+        self.faceE = Face(Axes.X)
+        self.faceW = Face(Axes.X)
+        self.faceT = Face(Axes.Z)
+        self.faceB = Face(Axes.Z)
     
     def see_curr_sols(self): # TODO clean this up 
         face_sols = {}
@@ -104,8 +101,8 @@ class NodeProperties:
 #     problem = cn.Problem()
 #     x_range = range(0, 100)
 #     y_range = range(0,100)
-#     problem.addVariable("x", x_range)
-#     problem.addVariable("y", y_range)
+#     problem.addVariable(Axes.Z, x_range)
+#     problem.addVariable(Axes.Y, y_range)
 #     return problem
 
 

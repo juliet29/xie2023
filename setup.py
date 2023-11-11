@@ -11,7 +11,7 @@ from graph_data import *
 class SetUp():
     def __init__(self):
         self.graph = self.initialize_graph()
-        self.tree = self.create_spanning_tree()
+        self.create_spanning_tree()
         self.fix_orientations()
         pass
 
@@ -25,7 +25,7 @@ class SetUp():
             d = [list_of_values[ix] for list_of_values in NODE_DATA.values()]
             CG.nodes[ix]["props"] = NodeProperties(*d)
 
-        # edges
+        # edges # TODO make EdgeProperties object 
         n = np.linspace(0,3,4) # TODO make flexible 
         X2D,Y2D = np.meshgrid(n,n)
         attrs = {(x,y): {"space_rel": sr, "orient": o} for x,y,sr,o in zip(Y2D.ravel(),X2D.ravel(), SPACE_REL.ravel(), ORIENTATIONS.ravel())}
@@ -35,7 +35,8 @@ class SetUp():
     
     def create_spanning_tree(self):
         # TODO fix alignments 
-        return list(nx.edge_dfs(self.graph, source=0))
+        self.tree = list(nx.edge_dfs(self.graph, source=0))
+        self.traversal_order = [item for sublist in self.tree for item in sublist]
     
     def fix_orientations(self):
         # TODO -> extend to include all unincluded information 
