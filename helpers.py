@@ -2,8 +2,8 @@ import numpy as np
 import constraint as cn
 
 from enum import Enum
-from visuals import *
 import plotly.express as px
+
 
 
 COLORWAY = ["#25283d","#8f3985","#ee6c4d","#07beb8","#f5b841"]
@@ -124,6 +124,38 @@ class NodeProperties:
         self.pos = np.zeros(3)
         self.faces = NodeFaces()
         self.constrained = False # not all axes are fixed 
+
+
+
+
+class Tracking:
+    def __init__(self):
+        self.local = {
+            # for each node - all_nb, current_nb, correct_nv
+        }
+
+        self.visited_nodes = []
+
+class LocalTracking:
+    def __init__(self):
+        self.current_nb = None # Node 
+        self.correct_nb = []
+        # self.correct_nb = []
+        
+class ProcessTracking:
+    def __init__(self):
+        # for each step..
+        self.figs = {
+            "orient": None,
+            "adjacent": None,
+            "face_match": None
+        }
+        self.empty_checks = {
+            "orient": None,
+            "adjacent": None,
+            "face_match": None
+        }
+
 
 
 class VisualHelpers():

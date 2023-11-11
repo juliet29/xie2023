@@ -22,11 +22,13 @@ class SetUp():
 
         for ix, node in enumerate(CG.nodes):
             d = [list_of_values[ix] for list_of_values in NODE_DATA.values()]
-            CG.nodes[ix]["props"] = NodeProperties(*d, ix) #TODO can extend the node object from networkx module so dont have props dict 
+            CG.nodes[ix]["props"] = NodeProperties(*d, ix) 
+            #TODO can extend the node object from networkx module so dont have props dict 
 
+        # orientations may not be fixed coming 
         ut = self.set_orientations()
 
-        # set graph edges for orientation + space relation data 
+        # set graph edges info
         # graph needs to be a directed graph 
         DG = nx.DiGraph(CG)
         for iy, ix in np.ndindex(ut.shape):
