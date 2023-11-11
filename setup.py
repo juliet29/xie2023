@@ -23,7 +23,7 @@ class SetUp():
 
         for ix, node in enumerate(CG.nodes):
             d = [list_of_values[ix] for list_of_values in NODE_DATA.values()]
-            CG.nodes[ix]["props"] = NodeProperties(*d)
+            CG.nodes[ix]["props"] = NodeProperties(*d, ix) #TODO can extend the node object from networkx module so dont have props dict 
 
         # edges # TODO make EdgeProperties object 
         n = np.linspace(0,3,4) # TODO make flexible 

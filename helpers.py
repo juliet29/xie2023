@@ -2,7 +2,13 @@ import numpy as np
 import constraint as cn
 
 from enum import Enum
+from visuals import *
+import plotly.express as px
 
+
+COLORWAY = ["#25283d","#8f3985","#ee6c4d","#07beb8","#f5b841"]
+#px.colors.sequential.Jet
+#['#702632', '#A4B494', '#495867', '#912F40', "#81909E", "#F4442E", "#DB7C26", "#BB9BB0"]
 
 class SpatialRel(Enum):
     """Spatial relation"""
@@ -49,43 +55,55 @@ class Orient(Enum):
         return d[self.value]
 
 class Face(cn.Problem):
-    def __init__(self, axis: Axes):
+    def __init__(self, axis: Axes, name: str):
         cn.Problem.__init__(self)
-        nrange = range(0, 50)
-        self.addVariable(axis, nrange)
+        self.nrange = range(0, 50)
+        self.addVariable(axis, self.nrange)
         self.axis = axis
+        self.name = name
+        self.viz_data = {}
+        self.viz_type = "shape"
     
-    def get_curr_sols(self):
-        self.curr_sols = [list(z.values())[0] for z in self.getSolutions()]
-        self.len_sols = len(self.curr_sols)
-        return self.curr_sols
+    def get_face_sols(self):
+        self.sols = [list(z.values())[0] for z in self.getSolutions()]
+        self.orig_sols = True if set(self.sols) == set(self.nrange) else False
+        self.len_sols = len(self.sols)
+        return self.sols
+    
+    def create_viz_data(self):
+        v = VisualHelpers()
+        res = v.create_viz_data(self)
+        if res:
+            self.viz_data, self.viz_type = res
 
-    def get_face_sol(self):
-        assert len(self.getSolutions()) == 1, "Not a unique solution"
-        self.solution = [*self.getSolution().values()][0]
-        return self.solution
+
+    # def get_face_sol(self):
+    #     assert len(self.getSolutions()) == 1, "Not a unique solution"
+    #     self.solution = [*self.getSolution().values()][0]
+    #     return self.solution
     
 
 class NodeFaces():
     def __init__(self):
-        self.faceN = Face(Axes.Y)
-        self.faceS = Face(Axes.Y)
-        self.faceE = Face(Axes.X)
-        self.faceW = Face(Axes.X)
-        self.faceT = Face(Axes.Z)
-        self.faceB = Face(Axes.Z)
+        self.faceN = Face(Axes.Y, "faceN")
+        self.faceS = Face(Axes.Y, "faceS")
+        self.faceE = Face(Axes.X, "faceE")
+        self.faceW = Face(Axes.X, "faceW")
+        self.faceT = Face(Axes.Z, "faceT")
+        self.faceB = Face(Axes.Z, "faceB")
+        self.face_list = [self.faceN, self.faceS, self.faceE, self.faceW, self.faceT, self.faceB]
     
-    def see_curr_sols(self): # TODO clean this up 
+    def get_node_sols(self): # TODO clean this up 
         face_sols = {}
-        for face in vars(self):
-            curr_sols = [list(z.values())[0] for z in self.__getattribute__(face).getSolutions()]
+        for face in self.face_list:
+            curr_sols = face.get_face_sols()
             if len(curr_sols) < 1:
-                face_sols[face] = "No Solutions"
+                face_sols[face.name] = "No Solutions"
 
             elif len(curr_sols) == 1:
-                face_sols[face] = curr_sols[0]
+                face_sols[face.name] = curr_sols[0]
             else:
-                face_sols[face] = {
+                face_sols[face.name] = {
                     "min": min(curr_sols),
                     "max": max(curr_sols),
                 }
@@ -93,17 +111,56 @@ class NodeFaces():
         return face_sols
 
 class NodeProperties:
-    def __init__(self, name="Test", length=1, width=1, height=1, level_height=0):
+    def __init__(self, name="Test", length=1, width=1, height=1, level_height=0, index=0):
         self.name = name
         self.length = length
         self.width = width
         self.height = height
         self.level_height = level_height
+        self.index = index
+        # TODO extend so that can account for minimal node infomation ie -> add functions..
+
+
         self.pos = np.zeros(3)
         self.faces = NodeFaces()
         self.constrained = False # not all axes are fixed 
 
-        # TODO extend so that can account for minimal node infomation 
+
+class VisualHelpers():
+    def create_viz_data(self, face: Face): # TODO put this in the face class...
+        domain = list(range(50))
+        sols = face.get_face_sols()
+        d = None
+        type = None
+        if len(sols) < 1:
+            return None
+        
+        elif len(sols) == 1:
+            type = "lines"
+            y = domain
+            x = sols*len(domain)
+            if face.axis == Axes.X:
+                d = {"y" : y, "x": x}
+                # return d, type
+            elif face.axis == Axes.Y:
+                d = {"y" : x, "x": y}
+                # return d, type
+        else:
+            type = "shape"
+            x0 = min(sols)
+            x1 = max(sols)
+            y0 = min(domain) - 10
+            y1 = max(domain) + 10
+            if face.axis == Axes.X:
+                d = {
+                    "x0": x0,"x1": x1,"y0": y0,"y1": y1
+                }
+                # return d, type
+            elif face.axis == Axes.Y:
+                d = {
+                    "y0": x0,"y1": x1,"x0": y0,"x1": y1
+                }
+        return d, type
 
 
 

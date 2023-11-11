@@ -17,7 +17,7 @@ class Solution(SetUp):
             curr_face.addConstraint(cn.InSetConstraint([prop])) 
             a.set_face_relation(n0, curr_face.axis, "NET") 
         n0.constrained = True
-        return n0.faces.see_curr_sols()
+        return n0.faces.get_node_sols()
     
     def solve_TB_problem(self):
         pass
@@ -57,5 +57,5 @@ class Solution(SetUp):
                 a.set_face_relation(nj, orient.axis)
             except:
                 return "Issue :("
-            print((f"node_num is {edge[1]}", nj.faces.see_curr_sols()))
+            print((f"node_num is {edge[1]}", nj.faces.get_node_sols()))
 
