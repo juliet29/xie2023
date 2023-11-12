@@ -39,7 +39,7 @@ class Actions:
             Orient.NORTH: (nj.faceS, ni.faceN),
             Orient.SOUTH: (nj.faceN, ni.faceS),
             Orient.EAST: (nj.faceW, ni.faceE),
-            Orient.WEST: (nj.faceW, ni.faceE),
+            Orient.WEST: (nj.faceE, ni.faceW),
             Orient.TOP: (nj.faceT, ni.faceB),
             Orient.BOTTOM: (nj.faceT, ni.faceB),
         }
@@ -63,7 +63,7 @@ class Actions:
 
 
     def spatial_relate_ij(self, ni: NodeProperties, nj: NodeProperties, orient: Orient, rel: SpatialRel):
-        ic(orient)
+        ic(orient, rel)
         if rel == SpatialRel.ADJACENT or rel == SpatialRel.INTERSECTING: # TODO fix!
             
             if orient == Orient.NORTH or orient == Orient.SOUTH:
@@ -74,12 +74,23 @@ class Actions:
                     f1 = ni.faces.faceN
                     f2 = nj.faces.faceS
                 elif orient == Orient.SOUTH:
-                    ic("dirty south")
                     f1 = ni.faces.faceS
                     f2 = nj.faces.faceN
     
                 assert(len(f1.get_face_sols()) == 1)
                 f2.addConstraint(cn.InSetConstraint(f1.sols))
+
+            if orient == Orient.EAST or orient == Orient.WEST:
+                nj.faces.faceS.addConstraint(lambda x: self.var_constraint(x, ni, nj))
+
+                if orient == Orient.EAST:
+                    # ni.faceN == nj.faceS
+                    f1 = ni.faces.faceE
+                    f2 = nj.faces.faceW
+                elif orient == Orient.WEST:
+                    f1 = ni.faces.faceW
+                    f2 = nj.faces.faceE
+
         else:
             pass
 
