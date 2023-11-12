@@ -58,14 +58,11 @@ class Actions:
             if self.orient == Orient.NORTH or self.orient == Orient.SOUTH:
                 self.primary_relate()
                 self.secondary_relate(self.nj.faces.faceW)
-                # self.nj.faces.faceW.addConstraint(lambda x: self.variable_constraint(x, self.ni, self.nj))
                 
 
             if self.orient == Orient.EAST or self.orient == Orient.WEST:
                 self.primary_relate()
                 self.secondary_relate(self.nj.faces.faceS)
-                # self.nj.faces.faceS.addConstraint(lambda x: self.variable_constraint(x, self.ni, self.nj))
-
                 
         else:
             pass
@@ -94,34 +91,6 @@ class Actions:
                 poss_sols = [[*sol.values()][0] + prop for sol in face.getSolutionIter()]
                 face.partner.addConstraint(cn.InSetConstraint(poss_sols))
 
-
-
-        
-
-
-    # def check(self, self.ni:NodeProperties, self.nj:NodeProperties, viz:bool=False):
-        
-
-    #     # check that solitoons exists for both nodes
-    #     empty_sol_tracker = []
-    #     for node in [self.ni, self.nj]:
-    #         for face in node.faces.face_list:
-    #             # print(node.index, face.name, face.getSolutions())
-    #             sols = face.get_face_sols()
-    #             if not sols:
-    #                 empty_sol_tracker.append({"node": node.index, "face": face.name})
-
-    #     fig = None 
-    #     if viz:
-    #         fig=go.Figure()
-    #         p = PlotSols()
-    #         for node in [self.ni, self.nj]:
-    #             fig = p.plot_node_sols(node, fig)
-    #         # TODO some tracker that stores all figs? 
-
-    #     # TODO -> raise error if empty sol tracker != empty 
-        
-    #     return empty_sol_tracker, fig
     
     def final_check(self, nj:NodeProperties=None):
         if not self.nj:
