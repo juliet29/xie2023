@@ -35,52 +35,72 @@ class Solution(SetUp):
     def solve_2D_problem(self):
         a = Actions()
         tree = self.spanning_tree
+        self.track = {}
         for ix, edge in enumerate(tree):
-            self.process_track[ix] = ProcessTracking()
-            self.process_track[ix].edge = edge
+            if ix in [0, 1]:
+                self.process_track[ix] = ProcessTracking()
+                self.process_track[ix].edge = edge
+                self.track[ix] = []
+                
 
-            ni = self.graph.nodes[edge[0]]["props"]
-            nj = self.graph.nodes[edge[1]]["props"] # new node to set 
-            orient = self.graph.edges[edge]["orient"] 
-            rel = self.graph.edges[edge]["space_rel"] 
+                ni = self.graph.nodes[edge[0]]["props"]
+                nj = self.graph.nodes[edge[1]]["props"] # new node to set 
+                orient = self.graph.edges[edge]["orient"] 
+                rel = self.graph.edges[edge]["space_rel"] 
+                self.track[ix].append([edge, orient, rel])
 
-            # relationships 
-            self.visited_nodes.append(nj.index)
-            self.nb_track[nj.index].current_nb = ni.index
+                # relationships 
+                self.visited_nodes.append(nj.index)
+                self.nb_track[nj.index].current_nb = ni.index
 
-            # orient # TODO fix basis in orient function 
-            a.orient_ij(ni, nj, orient)
-            em_check, fig = a.check(ni, nj, viz=True)
-            self.process_track[ix].figs["orient"] = fig
-            self.process_track[ix].empty_checks["orient"] = em_check
-            if em_check:
-                return 
+                # orient # TODO fix basis in orient function 
+                a.orient_ij(ni, nj, orient)
+                self.track[ix].append(nj.faces.get_node_sols())
+                em_check, fig = a.check(ni, nj, viz=True)
+                self.process_track[ix].figs["orient"] = fig
+                self.process_track[ix].empty_checks["orient"] = em_check
+                if em_check:
+                    return 
 
-            # spatial relate
-            a.spatial_relate_ij(ni, nj, orient, rel)
-            em_check, fig = a.check(ni, nj, viz=True)
-            self.process_track[ix].figs["orient"] = fig
-            self.process_track[ix].empty_checks["orient"] = em_check
-            if em_check:
-                return 
+                # spatial relate
+                a.spatial_relate_ij(ni, nj, orient, rel)
+                self.track[ix].append(nj.faces.get_node_sols())
+                em_check, fig = a.check(ni, nj, viz=True)
+                self.process_track[ix].figs["adjacent"] = fig
+                self.process_track[ix].empty_checks["adjacent"] = em_check
+                if em_check:
+                    return 
 
-            # # match faces 
-            # a.set_face_relation(nj, orient.axis)
-            # a.check()
+                # match faces 
+                a.set_face_rel(nj)
+                self.track[ix].append(nj.faces.get_node_sols())
+                em_check, fig = a.check(ni, nj, viz=True)
+                self.process_track[ix].figs["face_match"] = fig
+                self.process_track[ix].empty_checks["face_match"] = em_check
+                if em_check:
+                    return 
 
-            # update relationships 
-            self.nb_track[nj.index].current_nb = None
-            self.nb_track[nj.index].correct_nb.append(ni.index)
+                # update relationships 
+                self.nb_track[nj.index].current_nb = None
+                self.nb_track[nj.index].correct_nb.append(ni.index)
 
+    def mode_update(self, v, mode):
+        c = v.empty_checks[mode] if v.empty_checks[mode] else "-"
+        v.figs[mode].add_annotation(x=60, y=60, text=f"empty:{c}", showarrow=False)
+        orientation = self.graph.edges[v.edge]["orient"] 
+        v.figs[mode].update_layout(title_text=f"{mode}:{v.edge} - {orientation}")
+
+        v.figs[mode].show()
     
     def see_updates(self):
         for k, v in self.process_track.items():
-            c = v.empty_checks["orient"]
-            v.figs["orient"].add_annotation(x=60, y=60, text=f"empty:{c}", showarrow=False)
-            orientation = self.graph.edges[v.edge]["orient"] 
-            v.figs["orient"].update_layout(title_text=f"{v.edge} - {orientation}")
+                if k in [0,1]:
+                    self.mode_update(v, "orient")
+                    self.mode_update(v, "adjacent")
 
-            v.figs["orient"].show()
+    def get_sols(self, ix):
+        return self.graph.nodes[ix]["props"].faces.get_node_sols()
+        
             
 
 

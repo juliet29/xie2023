@@ -55,7 +55,7 @@ class Orient(Enum):
         return d[self.value]
 
 class Face(cn.Problem):
-    def __init__(self, axis: Axes, name: str):
+    def __init__(self, axis: Axes, name: str, ):
         cn.Problem.__init__(self)
         self.nrange = range(0, 50)
         self.addVariable(axis, self.nrange)
@@ -63,6 +63,7 @@ class Face(cn.Problem):
         self.name = name
         self.viz_data = {}
         self.viz_type = "shape"
+        self.partner = None
     
     def get_face_sols(self):
         self.sols = [list(z.values())[0] for z in self.getSolutions()]
@@ -92,6 +93,15 @@ class NodeFaces():
         self.faceT = Face(Axes.Z, "faceT")
         self.faceB = Face(Axes.Z, "faceB")
         self.face_list = [self.faceN, self.faceS, self.faceE, self.faceW, self.faceT, self.faceB]
+        self.assign_partners()
+
+    def assign_partners(self):
+        f=lambda l:l and l[1::-1]+f(l[2:])
+        flip_faces = f(self.face_list)
+        for face1, face2 in zip(self.face_list, flip_faces):
+            face1.partner = face2
+
+
     
     def get_node_sols(self): # TODO clean this up 
         face_sols = {}

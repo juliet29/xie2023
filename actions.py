@@ -78,9 +78,31 @@ class Actions:
                     f2 = ni.faces.faceS
     
                 assert(len(f2.get_face_sols()) == 1)
-                f1.addConstraint(cn.InSetConstraint(f2.sols))
+                f2.addConstraint(cn.InSetConstraint(f1.sols))
         else:
             pass
+
+
+    def set_face_rel(self, node: NodeProperties):
+        # if face vals are not the default, set the match face 
+        d = {
+            Axes.Y: node.width,
+            Axes.X: node.length,
+            Axes.Z: node.height,
+            }
+        
+        for face in node.faces.face_list:
+            prop = d[face.axis]
+            if not face.sols:
+                face.get_face_sols()
+            if not face.orig_sols:
+                poss_sols = [[*sol.values()][0] + prop for sol in face.getSolutionIter()]
+                print("original", poss_sols)
+                face.partner.addConstraint(cn.InSetConstraint(poss_sols))
+
+
+
+        
 
 
     def check(self, ni:NodeProperties, nj:NodeProperties, viz:bool=False):
