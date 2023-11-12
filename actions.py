@@ -55,8 +55,6 @@ class Actions:
     def var_constraint(self, x, ni, nj):
         set1 = [ix - nj.length + THRESHOLD for ix  in ni.faces.faceW.sols]
         set2 = [ix - THRESHOLD for ix in ni.faces.faceE.sols]
-        ic(min(set1), max(set1))
-        ic(min(set2), max(set2))
 
         leni = len(set1) if len(set1) < len(set2) else len(set2)
         for i in list(range(leni)):

@@ -37,8 +37,8 @@ class Solution(SetUp):
         tree = self.spanning_tree
         self.track = {}
         for ix, edge in enumerate(tree):
-            print(edge)
             if ix in [0,1]:
+                ic(edge)
                 self.process_track[ix] = ProcessTracking()
                 self.process_track[ix].edge = edge
                 self.track[ix] = []
