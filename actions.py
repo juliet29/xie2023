@@ -67,22 +67,7 @@ class Actions:
         if rel == SpatialRel.ADJACENT or rel == SpatialRel.INTERSECTING: # TODO fix!
             
             if orient == Orient.NORTH or orient == Orient.SOUTH:
-
-                try:
-                    assert(len(ni.faces.faceW.get_face_sols()) == 1)
-                    assert(len(ni.faces.faceE.get_face_sols()) == 1)
-                    
-                    print(ni.faces.faceW.sols, ni.faces.faceE.sols)
-
-                    side1 = ni.faces.faceW.sols[0] - nj.length + THRESHOLD
-                    side2 = ni.faces.faceE.sols[0] - THRESHOLD
-
-                    print(side1, side2)
-
-                    nj.faces.faceW.addConstraint(lambda x: side1 < x < side2)
-                except:
-                    ic("ni faces not constrained")
-                    nj.faces.faceW.addConstraint(lambda x: self.var_constraint(x, ni, nj))
+                nj.faces.faceW.addConstraint(lambda x: self.var_constraint(x, ni, nj))
 
                 if orient == Orient.NORTH:
                     # ni.faceN == nj.faceS
