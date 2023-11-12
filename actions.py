@@ -30,29 +30,28 @@ class Actions:
     # def __set_matching_face(self, f1: Face, f2:Face, prop):
     #     poss_sols = [[*sol.values()][0] + prop for sol in f2.getSolutionIter()]
     #     return f1.addConstraint(cn.InSetConstraint(poss_sols))
-
-    # SET ORIENTATION RELATIONSHIPS --------------
-    def __add_orientation_constraint(self, f1: Face, f2: Face):
-        min_f2 = min([abs(list(s.values())[0]) for s in f2.getSolutions()])
-        return f1.addConstraint(lambda x: x < min_f2)  # TODO FIX, should be like a set?
+    
 
     def orient_ij(self, ni: NodeProperties, nj: NodeProperties, orient: Orient):
         ni = ni.faces
         nj = nj.faces
         d = {
+            Orient.NORTH: (nj.faceN, ni.faceS),
             Orient.SOUTH: (nj.faceN, ni.faceS),
+            Orient.EAST: (nj.faceE, ni.faceW),
             Orient.WEST: (nj.faceE, ni.faceW),
+            Orient.TOP: (nj.faceT, ni.faceB),
             Orient.BOTTOM: (nj.faceT, ni.faceB),
         }
-        val = None
-        try:
-            val = d[orient]
-        except:
-            v = d[orient.partner]
-            val = (v[1], v[0])
 
-        self.__add_orientation_constraint(*val)
-        return
+        f1, f2 = d[orient]
+        min_f2 = min([abs(list(s.values())[0]) for s in f2.getSolutions()])
+
+        if orient.basis:
+            return f1.addConstraint(lambda x: x < min_f2) 
+        else:
+            return f1.addConstraint(lambda x: x > min_f2)  
+        
 
 
     def spatial_relate_ij(self):

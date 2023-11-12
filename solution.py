@@ -72,7 +72,8 @@ class Solution(SetUp):
         for k, v in self.process_track.items():
             c = v.empty_checks["orient"]
             v.figs["orient"].add_annotation(x=60, y=60, text=f"empty:{c}", showarrow=False)
-            v.figs["orient"].update_layout(title_text=f"orient - {v.edge}")
+            orientation = self.graph.edges[v.edge]["orient"] 
+            v.figs["orient"].update_layout(title_text=f"{v.edge} - {orientation}")
 
             v.figs["orient"].show()
             
