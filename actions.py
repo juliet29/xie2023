@@ -40,6 +40,8 @@ class Actions:
             if orient == Orient.NORTH or orient == Orient.SOUTH:
                 nj.faces.faceW.addConstraint(lambda x: self.var_constraint(x, ni, nj))
 
+                
+
                 if orient == Orient.NORTH:
                     # ni.faceN == nj.faceS
                     f1 = ni.faces.faceN

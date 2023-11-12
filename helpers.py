@@ -68,6 +68,7 @@ class Face(cn.Problem):
         self.partner = None
         self.normal = None
         self.sols = None
+        self.state = []
     
     def get_face_sols(self):
         self.sols = [list(z.values())[0] for z in self.getSolutions()]
@@ -81,11 +82,14 @@ class Face(cn.Problem):
         if res:
             self.viz_data, self.viz_type = res
 
+    def state_update(self):
+        self.get_face_sols()
+        if not self.sols():
+            return False
+        self.state.append(cn.Domain(self.sols))
 
-    # def get_face_sol(self):
-    #     assert len(self.getSolutions()) == 1, "Not a unique solution"
-    #     self.solution = [*self.getSolution().values()][0]
-    #     return self.solution
+
+
     
 
 class NodeFaces():
@@ -108,8 +112,6 @@ class NodeFaces():
         for ix, face in enumerate(self.face_list):
             face.normal = Orient(ix)
 
-
-    
     def get_node_sols(self): # TODO clean this up 
         face_sols = {}
         for face in self.face_list:
@@ -141,6 +143,10 @@ class NodeProperties:
         self.pos = np.zeros(3)
         self.faces = NodeFaces()
         self.constrained = False # not all axes are fixed 
+
+        # values that are updated over time 
+        self.correct_nb = []
+
 
 
 
