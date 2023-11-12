@@ -48,14 +48,39 @@ class Actions:
         min_f2 = min([abs(list(s.values())[0]) for s in f2.getSolutions()])
 
         if orient.basis:
-            return f1.addConstraint(lambda x: x < min_f2) 
+            return f1.addConstraint(lambda x: x <= min_f2) 
         else:
-            return f1.addConstraint(lambda x: x > min_f2)  
+            return f1.addConstraint(lambda x: x >= min_f2)  
         
 
 
-    def spatial_relate_ij(self):
-        pass
+    def spatial_relate_ij(self, ni: NodeProperties, nj: NodeProperties, orient: Orient, rel: SpatialRel):
+        if rel == SpatialRel.ADJACENT:
+            if orient == Orient.NORTH or orient == Orient.SOUTH:
+                assert(len(ni.faces.faceW.get_face_sols()) == 1)
+                assert(len(ni.faces.faceE .get_face_sols()) == 1)
+                
+                print(ni.faces.faceW.sols, ni.faces.faceE.sols)
+
+                side1 = ni.faces.faceW.sols[0] - nj.length + THRESHOLD
+                side2 = ni.faces.faceE.sols[0] - THRESHOLD
+
+                print(side1, side2)
+
+                nj.faces.faceW.addConstraint(lambda x: side1 < x < side2)
+
+                if orient == Orient.NORTH:
+                    # ni.faceN == nj.faceS
+                    f1 = nj.faces.faceS
+                    f2 = ni.faces.faceN
+                else:
+                    f1 = nj.faces.faceN
+                    f2 = ni.faces.faceS
+    
+                assert(len(f2.get_face_sols()) == 1)
+                f1.addConstraint(cn.InSetConstraint(f2.sols))
+        else:
+            pass
 
 
     def check(self, ni:NodeProperties, nj:NodeProperties, viz:bool=False):
@@ -65,6 +90,7 @@ class Actions:
         empty_sol_tracker = []
         for node in [ni, nj]:
             for face in node.faces.face_list:
+                # print(node.index, face.name, face.getSolutions())
                 sols = face.get_face_sols()
                 if not sols:
                     empty_sol_tracker.append({"node": node.index, "face": face.name})

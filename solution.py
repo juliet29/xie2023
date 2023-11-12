@@ -42,6 +42,7 @@ class Solution(SetUp):
             ni = self.graph.nodes[edge[0]]["props"]
             nj = self.graph.nodes[edge[1]]["props"] # new node to set 
             orient = self.graph.edges[edge]["orient"] 
+            rel = self.graph.edges[edge]["space_rel"] 
 
             # relationships 
             self.visited_nodes.append(nj.index)
@@ -55,9 +56,13 @@ class Solution(SetUp):
             if em_check:
                 return 
 
-            # # spatial relate
-            # a.spatial_relate_ij()
-            # a.check()
+            # spatial relate
+            a.spatial_relate_ij(ni, nj, orient, rel)
+            em_check, fig = a.check(ni, nj, viz=True)
+            self.process_track[ix].figs["orient"] = fig
+            self.process_track[ix].empty_checks["orient"] = em_check
+            if em_check:
+                return 
 
             # # match faces 
             # a.set_face_relation(nj, orient.axis)

@@ -5,7 +5,7 @@ from enum import Enum
 import plotly.express as px
 
 
-
+THRESHOLD = 1
 COLORWAY = ["#25283d","#8f3985","#ee6c4d","#07beb8","#f5b841"]
 #px.colors.sequential.Jet
 #['#702632', '#A4B494', '#495867', '#912F40', "#81909E", "#F4442E", "#DB7C26", "#BB9BB0"]
@@ -113,14 +113,14 @@ class NodeFaces():
 class NodeProperties:
     def __init__(self, name="Test", length=1, width=1, height=1, level_height=0, index=0):
         self.name = name
-        self.length = length
-        self.width = width
-        self.height = height
+        self.length = length # E-W
+        self.width = width # N-S 
+        self.height = height # T-B
         self.level_height = level_height
         self.index = index
         # TODO extend so that can account for minimal node infomation ie -> add functions..
 
-
+        # values that start as the same for all nodes 
         self.pos = np.zeros(3)
         self.faces = NodeFaces()
         self.constrained = False # not all axes are fixed 
