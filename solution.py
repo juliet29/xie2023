@@ -39,8 +39,8 @@ class Solution(SetUp):
         for ix, edge in enumerate(tree):
             if ix in [0,1,2]:
                 ic(edge)
-                self.process_track[ix] = ProcessTracking()
-                self.process_track[ix].edge = edge
+                # self.process_track[ix] = ProcessTracking()
+                # self.process_track[ix].edge = edge
                 self.track[ix] = []
                 
 
@@ -66,23 +66,23 @@ class Solution(SetUp):
                 # spatial relate
                 a.spatial_relate_ij(ni, nj, orient, rel)
                 self.track[ix].append(nj.faces.get_node_sols())
-                em_check, fig = a.check(ni, nj, viz=True)
-                self.process_track[ix].figs["adjacent"] = fig
-                self.process_track[ix].empty_checks["adjacent"] = em_check
-                if em_check:
-                    return 
+                # em_check, fig = a.check(ni, nj, viz=True)
+                # self.process_track[ix].figs["adjacent"] = fig
+                # self.process_track[ix].empty_checks["adjacent"] = em_check
+                # if em_check:
+                #     return 
 
                 # match faces 
-                a.set_face_rel(nj)
+                a.set_face_rel()
                 self.track[ix].append(nj.faces.get_node_sols())
-                em_check, fig = a.check(ni, nj, viz=True)
-                self.process_track[ix].figs["face_match"] = fig
-                self.process_track[ix].empty_checks["face_match"] = em_check
-                if em_check:
-                    return 
+                # em_check, fig = a.check(ni, nj, viz=True)
+                # self.process_track[ix].figs["face_match"] = fig
+                # self.process_track[ix].empty_checks["face_match"] = em_check
+                # if em_check:
+                #     return 
 
                 # update relationships 
-                # a.final_check(nj)
+                # a.final_check()
                 self.nb_track[nj.index].current_nb = None
                 self.nb_track[nj.index].correct_nb.append(ni.index)
 

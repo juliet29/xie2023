@@ -3,72 +3,79 @@ from visuals import *
 
 
 class Actions:
-    # def orient_ij(self, ni: NodeProperties, nj: NodeProperties, orient: Orient):
-    #     ni = ni.faces
-    #     nj = nj.faces
-    #     d = {
-    #         Orient.NORTH: (nj.faceS, ni.faceN),
-    #         Orient.SOUTH: (nj.faceN, ni.faceS),
-    #         Orient.EAST: (nj.faceW, ni.faceE),
-    #         Orient.WEST: (nj.faceE, ni.faceW),
-    #         Orient.TOP: (nj.faceT, ni.faceB),
-    #         Orient.BOTTOM: (nj.faceT, ni.faceB),
-    #     }
+    def __init__(self):
+        self.ni:NodeProperties = None
+        self.nj:NodeProperties = None
+        self.orient:Orient = None
+        self.rel: SpatialRel
 
-    #     f1, f2 = d[orient]
-    #     min_f2 = min([abs(list(s.values())[0]) for s in f2.getSolutions()])
+            
+    def primary_relate(self):
+        f1 = None
+        f2 = None
+        if self.orient == Orient.NORTH:
+            f1 = self.ni.faces.faceN
+            f2 = self.nj.faces.faceS
+        elif self.orient == Orient.SOUTH:
+            f1 = self.ni.faces.faceS
+            f2 = self.nj.faces.faceN
+        elif self.orient == Orient.EAST:
+            f1 = self.ni.faces.faceE
+            f2 = self.nj.faces.faceW
+        elif self.orient == Orient.WEST:
+            f1 = self.ni.faces.faceW
+            f2 = self.nj.faces.faceE
+        else:
+            ic("wrong orient")
+            return False
 
-    #     if orient.basis:
-    #         return f1.addConstraint(lambda x: x <= min_f2) 
-    #     else:
-    #         return f1.addConstraint(lambda x: x >= min_f2)  
-        
+        f2.addConstraint(cn.InSetConstraint(f1.sols))
 
-    def var_constraint(self, x, ni, nj):
-        set1 = [ix - nj.length + THRESHOLD for ix  in ni.faces.faceW.sols]
-        set2 = [ix - THRESHOLD for ix in ni.faces.faceE.sols]
+        return f2, f1
+    
+    
+    def variable_constraint(self, x):
+        set1 = [ix - self.nj.length + THRESHOLD for ix  in self.ni.faces.faceW.sols]
+        set2 = [ix - THRESHOLD for ix in self.ni.faces.faceE.sols]
 
-        leni = len(set1) if len(set1) < len(set2) else len(set2)
-        for i in list(range(leni)):
+        valid_len = len(set1) if len(set1) < len(set2) else len(set2)
+        for i in list(range(valid_len)):
             if set1[i] <= x <= set2[i]:
                 return x
-
-    def spatial_relate_ij(self, ni: NodeProperties, nj: NodeProperties, orient: Orient, rel: SpatialRel):
-        ic(orient, rel)
-        if rel == SpatialRel.ADJACENT or rel == SpatialRel.INTERSECTING: # TODO fix!
             
-            if orient == Orient.NORTH or orient == Orient.SOUTH:
-                nj.faces.faceW.addConstraint(lambda x: self.var_constraint(x, ni, nj))
+    def secondary_relate(self, face):
+        face.addConstraint(lambda x: self.variable_constraint(x))
 
+
+
+    def spatial_relate_ij(self, ni, nj, orient, rel):
+        self.ni = ni
+        self.nj = nj
+        self.orient = orient
+        self.rel = rel
+        ic(self.orient, self.rel)
+        if self.rel == SpatialRel.ADJACENT or self.rel == SpatialRel.INTERSECTING: 
+            if self.orient == Orient.NORTH or self.orient == Orient.SOUTH:
+                self.primary_relate()
+                self.secondary_relate(self.nj.faces.faceW)
+                # self.nj.faces.faceW.addConstraint(lambda x: self.variable_constraint(x, self.ni, self.nj))
                 
 
-                if orient == Orient.NORTH:
-                    # ni.faceN == nj.faceS
-                    f1 = ni.faces.faceN
-                    f2 = nj.faces.faceS
-                elif orient == Orient.SOUTH:
-                    f1 = ni.faces.faceS
-                    f2 = nj.faces.faceN
-    
-                # assert(len(f1.get_face_sols()) == 1)
-                f2.addConstraint(cn.InSetConstraint(f1.sols))
+            if self.orient == Orient.EAST or self.orient == Orient.WEST:
+                self.primary_relate()
+                self.secondary_relate(self.nj.faces.faceS)
+                # self.nj.faces.faceS.addConstraint(lambda x: self.variable_constraint(x, self.ni, self.nj))
 
-            if orient == Orient.EAST or orient == Orient.WEST:
-                nj.faces.faceS.addConstraint(lambda x: self.var_constraint(x, ni, nj))
-
-                if orient == Orient.EAST:
-                    # ni.faceN == nj.faceS
-                    f1 = ni.faces.faceE
-                    f2 = nj.faces.faceW
-                elif orient == Orient.WEST:
-                    f1 = ni.faces.faceW
-                    f2 = nj.faces.faceE
-                f2.addConstraint(cn.InSetConstraint(f1.sols))
+                
         else:
             pass
 
 
-    def set_face_rel(self, node: NodeProperties):
+    def set_face_rel(self, nj:NodeProperties=None):
+        if not self.nj:
+            node = nj
+        else:
+            node = self.nj
         # if face vals are not the default, set the match face 
         d = {
             Axes.Y: node.width,
@@ -92,31 +99,35 @@ class Actions:
         
 
 
-    def check(self, ni:NodeProperties, nj:NodeProperties, viz:bool=False):
+    # def check(self, self.ni:NodeProperties, self.nj:NodeProperties, viz:bool=False):
         
 
-        # check that solitoons exists for both nodes
-        empty_sol_tracker = []
-        for node in [ni, nj]:
-            for face in node.faces.face_list:
-                # print(node.index, face.name, face.getSolutions())
-                sols = face.get_face_sols()
-                if not sols:
-                    empty_sol_tracker.append({"node": node.index, "face": face.name})
+    #     # check that solitoons exists for both nodes
+    #     empty_sol_tracker = []
+    #     for node in [self.ni, self.nj]:
+    #         for face in node.faces.face_list:
+    #             # print(node.index, face.name, face.getSolutions())
+    #             sols = face.get_face_sols()
+    #             if not sols:
+    #                 empty_sol_tracker.append({"node": node.index, "face": face.name})
 
-        fig = None 
-        if viz:
-            fig=go.Figure()
-            p = PlotSols()
-            for node in [ni, nj]:
-                fig = p.plot_node_sols(node, fig)
-            # TODO some tracker that stores all figs? 
+    #     fig = None 
+    #     if viz:
+    #         fig=go.Figure()
+    #         p = PlotSols()
+    #         for node in [self.ni, self.nj]:
+    #             fig = p.plot_node_sols(node, fig)
+    #         # TODO some tracker that stores all figs? 
 
-        # TODO -> raise error if empty sol tracker != empty 
+    #     # TODO -> raise error if empty sol tracker != empty 
         
-        return empty_sol_tracker, fig
+    #     return empty_sol_tracker, fig
     
-    def final_check(self, node):
+    def final_check(self, nj:NodeProperties=None):
+        if not self.nj:
+            node = nj
+        else:
+            node = self.nj
         for face in [node.faces.faceW, node.faces.faceS, node.faces.faceB]:
                 print(node.index, face.name, face.partner.name)
                 assert(min(face.sols) <= min(face.partner.sols))
