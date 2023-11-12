@@ -44,8 +44,14 @@ class Actions:
             Orient.WEST: (nj.faceE, ni.faceW),
             Orient.BOTTOM: (nj.faceT, ni.faceB),
         }
+        val = None
+        try:
+            val = d[orient]
+        except:
+            v = d[orient.partner]
+            val = (v[1], v[0])
 
-        self.__add_orientation_constraint(*d[orient])
+        self.__add_orientation_constraint(*val)
         return
 
 
@@ -75,6 +81,7 @@ class Actions:
         # TODO -> raise error if empty sol tracker != empty 
         
         return empty_sol_tracker, fig
+
 
 
 

@@ -145,6 +145,7 @@ class LocalTracking:
 class ProcessTracking:
     def __init__(self):
         # for each step..
+        self.edge = None
         self.figs = {
             "orient": None,
             "adjacent": None,

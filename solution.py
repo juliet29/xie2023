@@ -16,7 +16,7 @@ class Solution(SetUp):
     def set_start_node(self):
         n0 = self.graph.nodes[0]["props"]
         self.visited_nodes.append(n0.index)
-        
+
         # default settings for the initial node 
         base_faces = ["faceB", "faceW", "faceS"]
         props = [n0.level_height, 10, 10]
@@ -35,9 +35,9 @@ class Solution(SetUp):
     def solve_2D_problem(self):
         a = Actions()
         tree = self.spanning_tree
-        self.visited_nodes = []
-        for edge in tree:
-            self.process_track[f"{edge}"] = ProcessTracking()
+        for ix, edge in enumerate(tree):
+            self.process_track[ix] = ProcessTracking()
+            self.process_track[ix].edge = edge
 
             ni = self.graph.nodes[edge[0]]["props"]
             nj = self.graph.nodes[edge[1]]["props"] # new node to set 
@@ -50,8 +50,10 @@ class Solution(SetUp):
             # orient # TODO fix basis in orient function 
             a.orient_ij(ni, nj, orient)
             em_check, fig = a.check(ni, nj, viz=True)
-            self.process_track[f"{edge}"].figs["orient"] = fig
-            self.process_track[f"{edge}"].figs["orient"] = em_check
+            self.process_track[ix].figs["orient"] = fig
+            self.process_track[ix].empty_checks["orient"] = em_check
+            if em_check:
+                return 
 
             # # spatial relate
             # a.spatial_relate_ij()
@@ -63,33 +65,17 @@ class Solution(SetUp):
 
             # update relationships 
             self.nb_track[nj.index].current_nb = None
-            self.nb_track[nj.index].correct_nb = ni.index
+            self.nb_track[nj.index].correct_nb.append(ni.index)
+
+    
+    def see_updates(self):
+        for k, v in self.process_track.items():
+            c = v.empty_checks["orient"]
+            v.figs["orient"].add_annotation(x=60, y=60, text=f"empty:{c}", showarrow=False)
+            v.figs["orient"].update_layout(title_text=f"orient - {v.edge}")
+
+            v.figs["orient"].show()
             
-
-
-            # # if the new node is constrained, then flip ni and nj and flip the direction 
-            # if self.new_node["props"].constrained == True:
-            #     ni = self.graph.nodes[edge[1]]["props"]
-            #     self.new_node = self.graph.nodes[edge[0]]
-            #     nj = self.new_node["props"]
-            #     orient = orient.partner
-                
-            
-            # print(edge, orient) 
-            # # constrain based on orientation
-            # try:
-            #     if orient.basis:
-            #         a.orient_ij(ni, nj, orient)
-            #     else:
-            #         a.orient_ij(nj, ni, orient.partner)
-            #         print("switched")
-                
-
-            #     # match face 
-            #     a.set_face_relation(nj, orient.axis)
-            # except:
-            #     return "Issue :("
-            # print((f"node_num is {edge[1]}", nj.faces.get_node_sols()))
 
 
 

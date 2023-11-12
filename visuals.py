@@ -22,7 +22,7 @@ class PlotSols:
         if not face.viz_data or self.force_refresh:
             face.get_face_sols()
             face.create_viz_data()
-            print("refresh")
+            # print("refresh")
 
         color = COLORWAY[ix]
         label = f"{ix}.{face.name}"
