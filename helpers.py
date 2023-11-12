@@ -3,6 +3,8 @@ import constraint as cn
 
 from enum import Enum
 import plotly.express as px
+from icecream import ic
+ic.configureOutput(includeContext=True)
 
 
 THRESHOLD = 1
@@ -64,6 +66,8 @@ class Face(cn.Problem):
         self.viz_data = {}
         self.viz_type = "shape"
         self.partner = None
+        self.normal = None
+        self.sols = None
     
     def get_face_sols(self):
         self.sols = [list(z.values())[0] for z in self.getSolutions()]
@@ -93,13 +97,16 @@ class NodeFaces():
         self.faceT = Face(Axes.Z, "faceT")
         self.faceB = Face(Axes.Z, "faceB")
         self.face_list = [self.faceN, self.faceS, self.faceE, self.faceW, self.faceT, self.faceB]
-        self.assign_partners()
+        self.assign_relations()
 
-    def assign_partners(self):
+    def assign_relations(self):
         f=lambda l:l and l[1::-1]+f(l[2:])
         flip_faces = f(self.face_list)
         for face1, face2 in zip(self.face_list, flip_faces):
             face1.partner = face2
+
+        for ix, face in enumerate(self.face_list):
+            face.normal = Orient(ix)
 
 
     

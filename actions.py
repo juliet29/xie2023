@@ -12,12 +12,12 @@ class Actions:
         d = {
             "NET": {
                 Axes.Y: ("faceN", "faceS", n.width),
-                Axes.X: ("faceE", "faceW", n.length),
+                Axes.X: ("faceW", "faceE", n.length),
                 Axes.Z: ("faceT", "faceB", n.height),
             },
             "SWB": {
                 Axes.Y: ("faceS", "faceN", n.width),
-                Axes.X: ("faceW", "faceE", n.length),
+                Axes.X: ("faceE", "faceW", n.length),
                 Axes.Z: ("faceB", "faceT", n.height),
             },
         }  # TODO might remove this from dict for speed purposes later
@@ -36,10 +36,10 @@ class Actions:
         ni = ni.faces
         nj = nj.faces
         d = {
-            Orient.NORTH: (nj.faceN, ni.faceS),
+            Orient.NORTH: (nj.faceS, ni.faceN),
             Orient.SOUTH: (nj.faceN, ni.faceS),
-            Orient.EAST: (nj.faceE, ni.faceW),
-            Orient.WEST: (nj.faceE, ni.faceW),
+            Orient.EAST: (nj.faceW, ni.faceE),
+            Orient.WEST: (nj.faceW, ni.faceE),
             Orient.TOP: (nj.faceT, ni.faceB),
             Orient.BOTTOM: (nj.faceT, ni.faceB),
         }
@@ -52,32 +52,50 @@ class Actions:
         else:
             return f1.addConstraint(lambda x: x >= min_f2)  
         
+    def var_constraint(self, x, ni, nj):
+        set1 = [ix - nj.length + THRESHOLD for ix  in ni.faces.faceW.sols]
+        set2 = [ix - THRESHOLD for ix in ni.faces.faceE.sols]
+        ic(min(set1), max(set1))
+        ic(min(set2), max(set2))
+
+        leni = len(set1) if len(set1) < len(set2) else len(set2)
+        for i in list(range(leni)):
+            if set1[i] <= x <= set2[i]:
+                return x
 
 
     def spatial_relate_ij(self, ni: NodeProperties, nj: NodeProperties, orient: Orient, rel: SpatialRel):
-        if rel == SpatialRel.ADJACENT:
+        ic(orient)
+        if rel == SpatialRel.ADJACENT or rel == SpatialRel.INTERSECTING: # TODO fix!
+            
             if orient == Orient.NORTH or orient == Orient.SOUTH:
-                assert(len(ni.faces.faceW.get_face_sols()) == 1)
-                assert(len(ni.faces.faceE .get_face_sols()) == 1)
-                
-                print(ni.faces.faceW.sols, ni.faces.faceE.sols)
 
-                side1 = ni.faces.faceW.sols[0] - nj.length + THRESHOLD
-                side2 = ni.faces.faceE.sols[0] - THRESHOLD
+                try:
+                    assert(len(ni.faces.faceW.get_face_sols()) == 1)
+                    assert(len(ni.faces.faceE.get_face_sols()) == 1)
+                    
+                    print(ni.faces.faceW.sols, ni.faces.faceE.sols)
 
-                print(side1, side2)
+                    side1 = ni.faces.faceW.sols[0] - nj.length + THRESHOLD
+                    side2 = ni.faces.faceE.sols[0] - THRESHOLD
 
-                nj.faces.faceW.addConstraint(lambda x: side1 < x < side2)
+                    print(side1, side2)
+
+                    nj.faces.faceW.addConstraint(lambda x: side1 < x < side2)
+                except:
+                    ic("ni faces not constrained")
+                    nj.faces.faceW.addConstraint(lambda x: self.var_constraint(x, ni, nj))
 
                 if orient == Orient.NORTH:
                     # ni.faceN == nj.faceS
-                    f1 = nj.faces.faceS
-                    f2 = ni.faces.faceN
-                else:
-                    f1 = nj.faces.faceN
-                    f2 = ni.faces.faceS
+                    f1 = ni.faces.faceN
+                    f2 = nj.faces.faceS
+                elif orient == Orient.SOUTH:
+                    ic("dirty south")
+                    f1 = ni.faces.faceS
+                    f2 = nj.faces.faceN
     
-                assert(len(f2.get_face_sols()) == 1)
+                assert(len(f1.get_face_sols()) == 1)
                 f2.addConstraint(cn.InSetConstraint(f1.sols))
         else:
             pass
@@ -96,8 +114,10 @@ class Actions:
             if not face.sols:
                 face.get_face_sols()
             if not face.orig_sols:
+                if face.normal.basis:
+                    prop*=-1
+                    print(prop, face.name)
                 poss_sols = [[*sol.values()][0] + prop for sol in face.getSolutionIter()]
-                print("original", poss_sols)
                 face.partner.addConstraint(cn.InSetConstraint(poss_sols))
 
 
@@ -128,6 +148,11 @@ class Actions:
         # TODO -> raise error if empty sol tracker != empty 
         
         return empty_sol_tracker, fig
+    
+    def final_check(self, node):
+        for face in [node.faces.faceW, node.faces.faceS, node.faces.faceB]:
+                print(node.index, face.name, face.partner.name)
+                assert(min(face.sols) <= min(face.partner.sols))
 
 
 

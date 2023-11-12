@@ -24,8 +24,8 @@ class Solution(SetUp):
         a = Actions()
         for face, prop in zip(base_faces, props):
             curr_face = n0.faces.__getattribute__(face)
-            curr_face.addConstraint(cn.InSetConstraint([prop])) 
-            a.set_face_relation(n0, curr_face.axis, "NET") 
+            curr_face.addConstraint(cn.InSetConstraint([prop]))
+        a.set_face_rel(n0) 
         n0.constrained = True
         
         return n0.faces.get_node_sols()
@@ -37,7 +37,8 @@ class Solution(SetUp):
         tree = self.spanning_tree
         self.track = {}
         for ix, edge in enumerate(tree):
-            if ix in [0, 1]:
+            print(edge)
+            if ix in [0,1]:
                 self.process_track[ix] = ProcessTracking()
                 self.process_track[ix].edge = edge
                 self.track[ix] = []
@@ -81,6 +82,7 @@ class Solution(SetUp):
                     return 
 
                 # update relationships 
+                # a.final_check(nj)
                 self.nb_track[nj.index].current_nb = None
                 self.nb_track[nj.index].correct_nb.append(ni.index)
 
