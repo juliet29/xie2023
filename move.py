@@ -43,9 +43,22 @@ class Move:
             ic(moving_domain, constrain_domain, m2)
             if moving_domain2:
                 ic(moving_domain2, constrain_domain, m3)
-                
 
 
+
+    def check_nb(self):
+        ni = self.get_node(1)
+        for nj in ni .correct_nb:
+                entry = (ni.index, nj.index)
+                orient = self.graph.edges[entry]["orient"] 
+                rel = self.graph.edges[entry]["space_rel"] 
+
+                # ic(ni.index, nj.index, orient)
+                a = Actions(ni, nj, orient, rel)
+                res = a.spatial_relate_ij()
+                if res:
+                    raise RuntimeError("Moving {ni.index} will damage relation with {nj.index}")
+                print(res)
 
     
     def apply_move(self):
@@ -61,7 +74,8 @@ class Move:
                     face.state_update() 
                 except NoSolError:
                     # TODO assess failure..  or try a different process..
-                    raise AdjustmentError("Moving i failed")   
+                    raise AdjustmentError("Moving i failed") 
+                  
                 
                 
     
