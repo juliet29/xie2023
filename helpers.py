@@ -18,6 +18,9 @@ def domain_range(domain: list):
     elif len(domain) > 1:
         return (min(domain), max(domain))
     
+def get_problems_sols(p: cn.Problem):
+    return [list(z.values())[0] for z in p.getSolutions()]
+    
 
 class NoSolError(Exception):
     pass
@@ -84,7 +87,7 @@ class Face(cn.Problem):
     
     def get_face_sols(self):
         self.full_name = f"{self.parent_node}.{self.name}"
-        self.sols = [list(z.values())[0] for z in self.getSolutions()]
+        self.sols = get_problems_sols(self)
         if not self.sols:
             raise NoSolError(f"No sols for {self.parent_node}.{self.name} ")
         self.orig_sols = True if set(self.sols) == set(self.nrange) else False

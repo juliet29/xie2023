@@ -50,7 +50,10 @@ class Actions:
         #    face_i2.parent_node, face_i2.name,
         #    )
         face_j.addConstraint(lambda x: self.variable_constraint(x, face_i1, face_i2))
-        return face_j, None # TODO 
+        p = cn.Problem()
+        p.addVariable("x", face_j.nrange)
+        p.addConstraint(lambda x: self.variable_constraint(x, face_i1, face_i2))
+        return face_j, domain_range(get_problems_sols(p))
 
 
     def relate_process(self, face_j, face_i1, face_i2):
@@ -58,17 +61,17 @@ class Actions:
             face, domain = self.primary_relate()
             face.state_update()
         except NoSolError:
-                ic("Primary relate failed")
                 self.assess_failure(face, domain)
-                return False
+                raise RuntimeError("Primary relate failed")
+
         
         try:
             face, domain = self.secondary_relate(face_j, face_i1, face_i2)
             face.state_update()
         except NoSolError:
-                ic("Secondary relate failed")
                 self.assess_failure(face, domain)
-                return False
+                raise RuntimeError("Secondary relate failed")
+
         self.set_face_rel()
         self.final_check()
                 
@@ -84,12 +87,11 @@ class Actions:
         if self.rel == SpatialRel.ADJACENT or self.rel == SpatialRel.INTERSECTING: 
             ch = True
             if self.orient == Orient.NORTH or self.orient == Orient.SOUTH:
-                ch = self.relate_process(self.nj.faces.faceW, self.ni.faces.faceW, self.ni.faces.faceE)
+                self.relate_process(self.nj.faces.faceW, self.ni.faces.faceW, self.ni.faces.faceE)
 
             if self.orient == Orient.EAST or self.orient == Orient.WEST:
-                ch = self.relate_process(self.nj.faces.faceS, self.ni.faces.faceS, self.ni.faces.faceN) 
-            if not ch:
-                raise RuntimeError("Spatial relate failed")      
+                self.relate_process(self.nj.faces.faceS, self.ni.faces.faceS, self.ni.faces.faceN) 
+          
         else:
             ic(f"Action for {orient} not defined")
             pass
