@@ -31,78 +31,118 @@ class Actions:
 
         f2.addConstraint(cn.InSetConstraint(f1.sols))
 
-        return f2, f1
+        return f2, domain_range(f1.sols)
     
     
-    def variable_constraint(self, x):
-        set1 = [ix - self.nj.length + THRESHOLD for ix  in self.ni.faces.faceW.sols]
-        set2 = [ix - THRESHOLD for ix in self.ni.faces.faceE.sols]
+    def variable_constraint(self, x, face_i1, face_i2):
+        set1 = [ix - self.nj.length + THRESHOLD for ix  in face_i1.sols]
+        set2 = [ix - THRESHOLD for ix in face_i2.sols]
 
         valid_len = len(set1) if len(set1) < len(set2) else len(set2)
         for i in list(range(valid_len)):
             if set1[i] <= x <= set2[i]:
                 return x
             
-    def secondary_relate(self, face):
-        face.addConstraint(lambda x: self.variable_constraint(x))
+    def secondary_relate(self, face_j, face_i1, face_i2):
+        # ic("secondary relate!", 
+        #    face_j.parent_node, face_j.name,
+        #    face_i1.parent_node, face_i1.name,
+        #    face_i2.parent_node, face_i2.name,
+        #    )
+        face_j.addConstraint(lambda x: self.variable_constraint(x, face_i1, face_i2))
+        return face_j, None # TODO 
 
 
+    def relate_process(self, face_j, face_i1, face_i2):
+        try:
+            face, domain = self.primary_relate()
+            face.state_update()
+        except NoSolError:
+                ic("Primary relate failed")
+                self.assess_failure(face, domain)
+                return False
+        
+        try:
+            face, domain = self.secondary_relate(face_j, face_i1, face_i2)
+            face.state_update()
+        except NoSolError:
+                ic("Secondary relate failed")
+                self.assess_failure(face, domain)
+                return False
+        self.set_face_rel()
+        self.final_check()
+                
+        return True
+    
 
     def spatial_relate_ij(self, ni, nj, orient, rel):
         self.ni = ni
         self.nj = nj
         self.orient = orient
         self.rel = rel
-        ic(self.orient, self.rel)
+
         if self.rel == SpatialRel.ADJACENT or self.rel == SpatialRel.INTERSECTING: 
+            ch = True
             if self.orient == Orient.NORTH or self.orient == Orient.SOUTH:
-                self.primary_relate()
-                self.secondary_relate(self.nj.faces.faceW)
-                
+                ch = self.relate_process(self.nj.faces.faceW, self.ni.faces.faceW, self.ni.faces.faceE)
 
             if self.orient == Orient.EAST or self.orient == Orient.WEST:
-                self.primary_relate()
-                self.secondary_relate(self.nj.faces.faceS)
-                
+                ch = self.relate_process(self.nj.faces.faceS, self.ni.faces.faceS, self.ni.faces.faceN) 
+            if not ch:
+                raise RuntimeError("Spatial relate failed")      
         else:
+            ic(f"Action for {orient} not defined")
             pass
 
 
+
     def set_face_rel(self, nj:NodeProperties=None):
-        if not self.nj:
-            node = nj
-        else:
-            node = self.nj
+        node = nj if not self.nj else self.nj
         # if face vals are not the default, set the match face 
-        d = {
-            Axes.Y: node.width,
-            Axes.X: node.length,
-            Axes.Z: node.height,
-            }
+        d = {Axes.Y: node.width, Axes.X: node.length, Axes.Z: node.height,}
         
         for face in node.faces.face_list:
             prop = d[face.axis]
             if not face.sols:
                 face.get_face_sols()
             if not face.orig_sols: # TODO need stronger check here -> when all are adjusted might have issue 
-                if face.normal.basis:
+                # ic(face.full_name, face.normal, face.normal.basis)
+                if not face.normal.basis:
                     prop*=-1
-                    print(prop, face.name)
+                    # ic(f"{face.full_name} is a basis face, {prop}")
+                # else:
+                #     # ic(f"{face.full_name} is NOT a basis face, {prop}")
+        
                 poss_sols = [[*sol.values()][0] + prop for sol in face.getSolutionIter()]
                 face.partner.addConstraint(cn.InSetConstraint(poss_sols))
+                try: 
+                    face.partner.state_update()
+                except:
+                    ic("Match faces failed")
+                    self.assess_failure(face.partner, domain_range(poss_sols))
+        return 
 
     
     def final_check(self, nj:NodeProperties=None):
-        if not self.nj:
-            node = nj
-        else:
-            node = self.nj
+        node = nj if not self.nj else self.nj
         for face in [node.faces.faceW, node.faces.faceS, node.faces.faceB]:
-                print(node.index, face.name, face.partner.name)
+            face.get_face_sols()
+            face.partner.get_face_sols()
+            try:
                 assert(min(face.sols) <= min(face.partner.sols))
+            except AssertionError:
+                ic("face order check failed")
+                ic(node.index, face.name, face.partner.name)
+                pass
 
 
 
-
+    def assess_failure(self, face, domain):
+        if self.nj and self.ni: # TODO doesnt work for first node ...
+            ic("\n")
+            ic(f"Face tried to move: {self.nj.index}.{face.name}")
+            ic(f"Previous states: {face.state} ")
+            ic(f"Constraining domain: {domain}")
+            ic(f"Node relation: {self.ni.index}-{self.nj.index} {self.orient}")
 
 

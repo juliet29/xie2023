@@ -12,6 +12,16 @@ COLORWAY = ["#25283d","#8f3985","#ee6c4d","#07beb8","#f5b841"]
 #px.colors.sequential.Jet
 #['#702632', '#A4B494', '#495867', '#912F40', "#81909E", "#F4442E", "#DB7C26", "#BB9BB0"]
 
+def domain_range(domain: list):
+    if len(domain) == 1:
+        return (domain)
+    elif len(domain) > 1:
+        return (min(domain), max(domain))
+    
+
+class NoSolError(Exception):
+    pass
+
 class SpatialRel(Enum):
     """Spatial relation"""
     NO_RELATION = 0
@@ -57,7 +67,7 @@ class Orient(Enum):
         return d[self.value]
 
 class Face(cn.Problem):
-    def __init__(self, axis: Axes, name: str, ):
+    def __init__(self, axis: Axes, name: str,  normal: Orient):
         cn.Problem.__init__(self)
         self.nrange = range(0, 50)
         self.addVariable(axis, self.nrange)
@@ -66,12 +76,17 @@ class Face(cn.Problem):
         self.viz_data = {}
         self.viz_type = "shape"
         self.partner = None
-        self.normal = None
+        self.normal = normal
         self.sols = None
         self.state = []
+        self.parent_node = None
+        self.state_update()
     
     def get_face_sols(self):
+        self.full_name = f"{self.parent_node}.{self.name}"
         self.sols = [list(z.values())[0] for z in self.getSolutions()]
+        if not self.sols:
+            raise NoSolError(f"No sols for {self.parent_node}.{self.name} ")
         self.orig_sols = True if set(self.sols) == set(self.nrange) else False
         self.len_sols = len(self.sols)
         return self.sols
@@ -83,24 +98,24 @@ class Face(cn.Problem):
             self.viz_data, self.viz_type = res
 
     def state_update(self):
-        self.get_face_sols()
-        if not self.sols():
-            return False
-        self.state.append(cn.Domain(self.sols))
+        if self.get_face_sols():
+            self.state.append(domain_range(self.sols))
+        return 
 
 
 
     
 
 class NodeFaces():
-    def __init__(self):
-        self.faceN = Face(Axes.Y, "faceN")
-        self.faceS = Face(Axes.Y, "faceS")
-        self.faceE = Face(Axes.X, "faceE")
-        self.faceW = Face(Axes.X, "faceW")
-        self.faceT = Face(Axes.Z, "faceT")
-        self.faceB = Face(Axes.Z, "faceB")
+    def __init__(self, parent_node):
+        self.faceN = Face(Axes.Y, "faceN", Orient.NORTH)
+        self.faceS = Face(Axes.Y, "faceS", Orient.SOUTH)
+        self.faceE = Face(Axes.X, "faceE", Orient.EAST)
+        self.faceW = Face(Axes.X, "faceW", Orient.WEST)
+        self.faceT = Face(Axes.Z, "faceT", Orient.TOP)
+        self.faceB = Face(Axes.Z, "faceB", Orient.BOTTOM)
         self.face_list = [self.faceN, self.faceS, self.faceE, self.faceW, self.faceT, self.faceB]
+        self.parent_node = parent_node
         self.assign_relations()
 
     def assign_relations(self):
@@ -110,22 +125,17 @@ class NodeFaces():
             face1.partner = face2
 
         for ix, face in enumerate(self.face_list):
-            face.normal = Orient(ix)
+            face.parent_node = self.parent_node
 
-    def get_node_sols(self): # TODO clean this up 
+    def get_node_sols(self): 
         face_sols = {}
         for face in self.face_list:
             curr_sols = face.get_face_sols()
             if len(curr_sols) < 1:
-                face_sols[face.name] = "No Solutions"
-
-            elif len(curr_sols) == 1:
-                face_sols[face.name] = curr_sols[0]
+                face_sols[face.name] = "No Solutions" 
+                # TODO rais error 
             else:
-                face_sols[face.name] = {
-                    "min": min(curr_sols),
-                    "max": max(curr_sols),
-                }
+                face_sols[face.name] = domain_range(curr_sols)
     
         return face_sols
 
@@ -141,7 +151,7 @@ class NodeProperties:
 
         # values that start as the same for all nodes 
         self.pos = np.zeros(3)
-        self.faces = NodeFaces()
+        self.faces = NodeFaces(self.index)
         self.constrained = False # not all axes are fixed 
 
         # values that are updated over time 
@@ -151,34 +161,34 @@ class NodeProperties:
 
 
 
-class Tracking:
-    def __init__(self):
-        self.local = {
-            # for each node - all_nb, current_nb, correct_nv
-        }
+# class Tracking:
+#     def __init__(self):
+#         self.local = {
+#             # for each node - all_nb, current_nb, correct_nv
+#         }
 
-        self.visited_nodes = []
+#         self.visited_nodes = []
 
-class LocalTracking:
-    def __init__(self):
-        self.current_nb = None # Node 
-        self.correct_nb = []
-        # self.correct_nb = []
+# class LocalTracking:
+#     def __init__(self):
+#         self.current_nb = None # Node 
+#         self.correct_nb = []
+#         # self.correct_nb = []
         
-class ProcessTracking:
-    def __init__(self):
-        # for each step..
-        self.edge = None
-        self.figs = {
-            "orient": None,
-            "adjacent": None,
-            "face_match": None
-        }
-        self.empty_checks = {
-            "orient": None,
-            "adjacent": None,
-            "face_match": None
-        }
+# class ProcessTracking:
+#     def __init__(self):
+#         # for each step..
+#         self.edge = None
+#         self.figs = {
+#             "orient": None,
+#             "adjacent": None,
+#             "face_match": None
+#         }
+#         self.empty_checks = {
+#             "orient": None,
+#             "adjacent": None,
+#             "face_match": None
+#         }
 
 
 
