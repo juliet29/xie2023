@@ -1,6 +1,8 @@
 import numpy as np
 import constraint as cn
 
+import warnings
+
 from enum import Enum
 import plotly.express as px
 from icecream import ic
@@ -14,6 +16,12 @@ COLORWAY = ["#25283d","#8f3985","#ee6c4d","#07beb8","#f5b841"]
     
 
 class NoSolError(Exception):
+    pass
+
+class ActionError(Exception):
+    pass
+
+class AdjustmentError(Exception):
     pass
 
 class SpatialRel(Enum):
@@ -77,24 +85,28 @@ class Face(cn.Problem):
         self.state_update()
     
     def get_face_sols(self):
-        self.full_name = f"{self.parent_node}.{self.name}"
+        self.full_name = f"{self.parent_node}.{self.name}" # TODO fix
+
         self.sols = get_problems_sols(self)
         if not self.sols:
             raise NoSolError(f"No sols for {self.parent_node}.{self.name} ")
         self.orig_sols = True if set(self.sols) == set(self.nrange) else False
-        self.len_sols = len(self.sols)
         return self.sols
+
+    def state_update(self):
+        if self.get_face_sols():
+            self.state.append(domain_range(self.sols))
+        return 
+    
+    def reset_face(self):
+        self.reset()
+        self.addVariable(self.axis, self.nrange)
     
     def create_viz_data(self):
         v = VisualHelpers()
         res = v.create_viz_data(self)
         if res:
             self.viz_data, self.viz_type = res
-
-    def state_update(self):
-        if self.get_face_sols():
-            self.state.append(domain_range(self.sols))
-        return 
 
 
 
@@ -154,38 +166,6 @@ class NodeProperties:
 
 
 
-
-# class Tracking:
-#     def __init__(self):
-#         self.local = {
-#             # for each node - all_nb, current_nb, correct_nv
-#         }
-
-#         self.visited_nodes = []
-
-# class LocalTracking:
-#     def __init__(self):
-#         self.current_nb = None # Node 
-#         self.correct_nb = []
-#         # self.correct_nb = []
-        
-# class ProcessTracking:
-#     def __init__(self):
-#         # for each step..
-#         self.edge = None
-#         self.figs = {
-#             "orient": None,
-#             "adjacent": None,
-#             "face_match": None
-#         }
-#         self.empty_checks = {
-#             "orient": None,
-#             "adjacent": None,
-#             "face_match": None
-#         }
-
-
-
 class VisualHelpers():
     def create_viz_data(self, face: Face): 
         domain = list(range(50))
@@ -241,9 +221,11 @@ def domain_range(domain: list):
 def get_problems_sols(p: cn.Problem):
     return [list(z.values())[0] for z in p.getSolutions()]
 
-def variable_constraint(x, face_i1:Face, face_i2:Face, dist: int):
+def variable_constraint(x, face_i1:Face, face_i2:Face, dist: int, debug=False):
     set1 = [ix - dist + THRESHOLD for ix  in face_i1.sols]
     set2 = [ix - THRESHOLD for ix in face_i2.sols]
+    # if debug:
+    
 
     valid_len = len(set1) if len(set1) < len(set2) else len(set2)
     for i in list(range(valid_len)):
