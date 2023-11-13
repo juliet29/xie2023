@@ -39,13 +39,21 @@ class Actions:
     def secondary_relate(self, face_j, face_i1, face_i2):
         prop = self.nj.length if face_j.axis == Axes.X else self.nj.width
         ic(prop)
-        params = [face_i1, face_i2, self.nj.length] # TODO fix , might be width..
+        params = [face_i1, face_i2, prop] # TODO fix , might be width..
+        
+        set1 = [ix - prop + THRESHOLD for ix  in face_i1.sols]
+        set2 = [ix - THRESHOLD for ix in face_i2.sols]
+
+        if self.debug:
+            ic("yyy", face_i1.sols, face_i2.sols, set1, set2, face_j.getSolutions())
+
+
         face_j.addConstraint(lambda x: variable_constraint(x,*params, debug=self.debug))
+
 
         # get best case domain 
         p = cn.Problem()
         p.addVariable("x", face_j.nrange)
-        ic("yyy", face_i1.sols, face_i2.sols)
         p.addConstraint(lambda x: variable_constraint(x, *params))
         best_domain = domain_range(get_problems_sols(p))
         return (face_i1, face_i2), face_j, best_domain

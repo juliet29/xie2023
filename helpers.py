@@ -89,6 +89,7 @@ class Face(cn.Problem):
 
         self.sols = get_problems_sols(self)
         if not self.sols:
+            self.go_to_last_sol()
             raise NoSolError(f"No sols for {self.parent_node}.{self.name} ")
         self.orig_sols = True if set(self.sols) == set(self.nrange) else False
         return self.sols
@@ -101,6 +102,10 @@ class Face(cn.Problem):
     def reset_face(self):
         self.reset()
         self.addVariable(self.axis, self.nrange)
+
+    def go_to_last_sol(self):
+        self.reset_face()
+        self.addConstraint(cn.InSetConstraint(self.state[-1]))
     
     def create_viz_data(self):
         v = VisualHelpers()
@@ -224,9 +229,7 @@ def get_problems_sols(p: cn.Problem):
 def variable_constraint(x, face_i1:Face, face_i2:Face, dist: int, debug=False):
     set1 = [ix - dist + THRESHOLD for ix  in face_i1.sols]
     set2 = [ix - THRESHOLD for ix in face_i2.sols]
-    # if debug:
     
-
     valid_len = len(set1) if len(set1) < len(set2) else len(set2)
     for i in list(range(valid_len)):
         if set1[i] <= x <= set2[i]:

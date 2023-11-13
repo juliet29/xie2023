@@ -80,8 +80,8 @@ def get_smallest_dif(a,b):
 
 def assess_move(a,b):
     assert len(a) <= 2 and len(b) <= 2, "Arrays are the wrong size"
-    ic(a, b)
-    ic(len(a), len(b))
+    # ic(a, b)
+    # ic(len(a), len(b))
 
     if len(a) == 1 and len(b) == 1:
         mag= (a[0] - b[0])*-1
@@ -89,7 +89,7 @@ def assess_move(a,b):
     elif len(b) == 2  and len(a) == 2:
         mag1 = get_smallest_dif(a,b[0])
         mag2 = get_smallest_dif(a, b[1])
-        ic(mag1, mag2)
+        # ic(mag1, mag2)
         mag = mag1 if abs(mag1) > abs(mag2) else mag2
         
     else:
