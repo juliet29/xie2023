@@ -38,7 +38,6 @@ class Actions:
             
     def secondary_relate(self, face_j, face_i1, face_i2):
         prop = self.nj.length if face_j.axis == Axes.X else self.nj.width
-        ic(prop)
         params = [face_i1, face_i2, prop] # TODO fix , might be width..
         
         set1 = [ix - prop + THRESHOLD for ix  in face_i1.sols]
@@ -80,7 +79,7 @@ class Actions:
                 return res
                 # raise ActionError("Secondary relate failed")
         
-        ic("setting faces because 2nd rel no fail")
+        # ic("setting faces because 2nd rel no fail")
         self.set_face_rel()
         self.final_check()
 
@@ -142,20 +141,21 @@ class Actions:
 
     def assess_failure(self, facei, facej, domain):
         if self.nj and self.ni: # TODO doesnt work for first node ...
-            ic("\n")
-            ic(f"Face tried to move: {facej.full_name}")
-            ic(f"Previous states: {facej.state} ")
-            ic(f"Constraining domain: {domain}")
-            try:
-                ic(f"Constraining face: {facei.full_name}")
-                ic(f"Previous states of constraining face: {facei.state} ")
-            except AttributeError:
-                ic(f"Constraining face: {facei[0].full_name}")
-                ic(f"Constraining face: {facei[1].full_name}")
-                ic(f"Previous states of constraining face: {facei[0].state} ")
-                ic(f"Previous states of constraining face: {facei[1].state} ")
-            
-            ic(f"Node relation: {self.ni.index}-{self.nj.index} {self.orient}")
+            if self.debug:
+                ic("\n")
+                ic(f"Face tried to move: {facej.full_name}")
+                ic(f"Previous states: {facej.state} ")
+                ic(f"Constraining domain: {domain}")
+                try:
+                    ic(f"Constraining face: {facei.full_name}")
+                    ic(f"Previous states of constraining face: {facei.state} ")
+                except AttributeError:
+                    ic(f"Constraining face: {facei[0].full_name}")
+                    ic(f"Constraining face: {facei[1].full_name}")
+                    ic(f"Previous states of constraining face: {facei[0].state} ")
+                    ic(f"Previous states of constraining face: {facei[1].state} ")
+                
+                ic(f"Node relation: {self.ni.index}-{self.nj.index} {self.orient}")
 
             move_package = {
                 "constraining_domain": domain, 

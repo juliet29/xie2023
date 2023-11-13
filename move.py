@@ -3,7 +3,7 @@ from actions import *
 
 
 class Move:
-    def __init__(self, ni:NodeProperties, nj:NodeProperties, data:dict) -> None:
+    def __init__(self, ni:NodeProperties, nj:NodeProperties, data:dict, debug=False) -> None:
         self.mag = None
         self.ni = ni
         self.nj = nj
@@ -11,6 +11,7 @@ class Move:
         self.problem_face = data["problem_face"]
         self.constraining_face = data["constraining_face"]
         self.move_axis = self.problem_face.axis
+        self.debug = debug
         pass
 
 
@@ -28,23 +29,23 @@ class Move:
         # last domain of j 
         prob_domain = self.problem_face.state[-1] 
 
-        ic(moving_domain, constrain_domain, prob_domain)
-        
 
         m1 = assess_move(constrain_domain, prob_domain)
         m2 = assess_move(moving_domain, constrain_domain)
         self.mag = m1*(-1) + m2
         
-        ic(m1, m2)
-
         if moving_domain2:
-            ic(moving_domain2)
             m3 = assess_move(moving_domain2, constrain_domain)
-            ic(m3)
+            
+
+        if self.debug:
+            ic(constrain_domain, prob_domain, m1)
+            ic(moving_domain, constrain_domain, m2)
+            if moving_domain2:
+                ic(moving_domain2, constrain_domain, m3)
+                
 
 
-        # self.new_domain = [d + self.mag for d in list(range(*domain_to_move))]
-        
 
     
     def apply_move(self):
@@ -96,5 +97,5 @@ def assess_move(a,b):
         mag = get_smallest_dif(a,b)
     # else:
     #     raise RuntimeError("Wrong domain sizes")
-    ic(mag)
+    # ic(mag)
     return mag

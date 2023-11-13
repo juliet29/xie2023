@@ -44,7 +44,6 @@ class Solution(SetUp):
 
                 a = Actions(ni, nj, orient, rel)
                 res = a.spatial_relate_ij()
-                ic(res)
                     
                 # only get result if Action failed 
                 if res:
