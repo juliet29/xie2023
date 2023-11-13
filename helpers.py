@@ -11,15 +11,6 @@ THRESHOLD = 1
 COLORWAY = ["#25283d","#8f3985","#ee6c4d","#07beb8","#f5b841"]
 #px.colors.sequential.Jet
 #['#702632', '#A4B494', '#495867', '#912F40', "#81909E", "#F4442E", "#DB7C26", "#BB9BB0"]
-
-def domain_range(domain: list):
-    if len(domain) == 1:
-        return (domain)
-    elif len(domain) > 1:
-        return (min(domain), max(domain))
-    
-def get_problems_sols(p: cn.Problem):
-    return [list(z.values())[0] for z in p.getSolutions()]
     
 
 class NoSolError(Exception):
@@ -241,7 +232,23 @@ class VisualHelpers():
 
 
 
+def domain_range(domain: list):
+    if len(domain) == 1:
+        return (domain)
+    elif len(domain) > 1:
+        return (min(domain), max(domain))
+    
+def get_problems_sols(p: cn.Problem):
+    return [list(z.values())[0] for z in p.getSolutions()]
 
+def variable_constraint(x, face_i1:Face, face_i2:Face, dist: int):
+    set1 = [ix - dist + THRESHOLD for ix  in face_i1.sols]
+    set2 = [ix - THRESHOLD for ix in face_i2.sols]
+
+    valid_len = len(set1) if len(set1) < len(set2) else len(set2)
+    for i in list(range(valid_len)):
+        if set1[i] <= x <= set2[i]:
+            return x
 
 
 

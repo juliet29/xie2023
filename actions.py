@@ -33,27 +33,17 @@ class Actions:
 
         return f2, domain_range(f1.sols)
     
-    
-    def variable_constraint(self, x, face_i1, face_i2):
-        set1 = [ix - self.nj.length + THRESHOLD for ix  in face_i1.sols]
-        set2 = [ix - THRESHOLD for ix in face_i2.sols]
-
-        valid_len = len(set1) if len(set1) < len(set2) else len(set2)
-        for i in list(range(valid_len)):
-            if set1[i] <= x <= set2[i]:
-                return x
             
     def secondary_relate(self, face_j, face_i1, face_i2):
-        # ic("secondary relate!", 
-        #    face_j.parent_node, face_j.name,
-        #    face_i1.parent_node, face_i1.name,
-        #    face_i2.parent_node, face_i2.name,
-        #    )
-        face_j.addConstraint(lambda x: self.variable_constraint(x, face_i1, face_i2))
+        params = [face_i1, face_i2, self.nj.length]
+        face_j.addConstraint(lambda x: variable_constraint(x,*params ))
+
+        # get best case domain 
         p = cn.Problem()
         p.addVariable("x", face_j.nrange)
-        p.addConstraint(lambda x: self.variable_constraint(x, face_i1, face_i2))
-        return face_j, domain_range(get_problems_sols(p))
+        p.addConstraint(lambda x: variable_constraint(x, *params))
+        best_domain = domain_range(get_problems_sols(p))
+        return face_j, best_domain
 
 
     def relate_process(self, face_j, face_i1, face_i2):
@@ -64,7 +54,6 @@ class Actions:
                 self.assess_failure(face, domain)
                 raise RuntimeError("Primary relate failed")
 
-        
         try:
             face, domain = self.secondary_relate(face_j, face_i1, face_i2)
             face.state_update()
@@ -101,20 +90,15 @@ class Actions:
     def set_face_rel(self, nj:NodeProperties=None):
         node = nj if not self.nj else self.nj
         # if face vals are not the default, set the match face 
-        d = {Axes.Y: node.width, Axes.X: node.length, Axes.Z: node.height,}
+        d = {Axes.Y: node.width, Axes.X: node.length, Axes.Z: node.height}
         
         for face in node.faces.face_list:
             prop = d[face.axis]
             if not face.sols:
                 face.get_face_sols()
-            if not face.orig_sols: # TODO need stronger check here -> when all are adjusted might have issue 
-                # ic(face.full_name, face.normal, face.normal.basis)
+            if not face.orig_sols:
                 if not face.normal.basis:
                     prop*=-1
-                    # ic(f"{face.full_name} is a basis face, {prop}")
-                # else:
-                #     # ic(f"{face.full_name} is NOT a basis face, {prop}")
-        
                 poss_sols = [[*sol.values()][0] + prop for sol in face.getSolutionIter()]
                 face.partner.addConstraint(cn.InSetConstraint(poss_sols))
                 try: 
