@@ -7,6 +7,7 @@ class Solution(SetUp):
         SetUp.__init__(self)
         self.visited_nodes = []
         self.set_start_node()
+        self.index_counter = 0
 
     def set_start_node(self):
         n0 = self.graph.nodes[0]["props"]
@@ -26,11 +27,48 @@ class Solution(SetUp):
         return n0.faces.get_node_sols()
     
 
-    
-    def solve_2D_problem(self):
-        for ix, edge in enumerate(self.spanning_tree):
+    def step_through_problem(self):
+        
+        self.solve_2D_problem_step()
+        self.index_counter+=1
+        pass
+
+    def solve_2D_problem_step(self,):
+        ix = self.index_counter
+        edge = self.spanning_tree[ix]
+        ic(ix, edge)
+                
+        ni = self.graph.nodes[edge[0]]["props"]
+        nj = self.graph.nodes[edge[1]]["props"] # new node 
+        orient = self.graph.edges[edge]["orient"] 
+        rel = self.graph.edges[edge]["space_rel"] 
+        
+        ic(f"{edge, orient}")
+
+        self.visited_nodes.append(nj.index)
+
+        a = Actions(ni, nj, orient, rel)
+        res = a.spatial_relate_ij()
             
-            if ix in [0,1, 2,3]:
+        # only get result if Action failed 
+        if res:
+            m = Move(ni, nj, res)
+            m.apply_move()
+            ic("trying spatial relate again")
+            a = Actions(ni, nj, orient, rel, True)
+            res = a.spatial_relate_ij()
+
+        # complete rel 
+        nj.correct_nb.append(ni)
+        ni.correct_nb.append(nj)
+
+
+
+
+    
+    def solve_2D_problem(self, ):
+        for ix, edge in enumerate(self.spanning_tree):
+            if ix in [1,2, 3, 4]:
                 
                 ni = self.graph.nodes[edge[0]]["props"]
                 nj = self.graph.nodes[edge[1]]["props"] # new node 
